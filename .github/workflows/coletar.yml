@@ -1,0 +1,37 @@
+name: Atualizar passagens
+
+on:
+  schedule:
+    # 2x por dia: 06:17 e 18:17 no horário de Brasília (09:17 e 21:17 UTC)
+    - cron: "17 9,21 * * *"
+  workflow_dispatch: {}   # botão "Run workflow" para rodar na hora
+
+permissions:
+  contents: write
+
+concurrency:
+  group: coleta
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Buscar passagens no Seats.aero
+        env:
+          SEATS_AERO_API_KEY: ${{ secrets.SEATS_AERO_API_KEY }}
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python scripts/coletar.py
+      - name: Salvar resultados
+        run: |
+          git config user.name "robo-milhas"
+          git config user.email "robo-milhas@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Atualiza passagens $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push

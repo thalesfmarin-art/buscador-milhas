@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Buscador de Milhas · Rio Preto → Mundo</title>
+<style>
+:root{
+  --bg:#f6f7f9; --card:#fff; --ink:#1c2430; --muted:#6b7684; --faint:#9aa4b0; --line:#e4e8ee;
+  --accent:#1f6feb; --accent-soft:#e8f0fe; --good:#1a7f37; --good-soft:#e6f4ea; --warn:#9a6700; --warn-soft:#fff6e0;
+  --r:12px;
+}
+@media (prefers-color-scheme: dark){
+  :root{--bg:#0f1318;--card:#171c23;--ink:#e6eaf0;--muted:#9aa4b0;--faint:#6b7684;--line:#28303a;
+  --accent:#5b9dff;--accent-soft:#1a2740;--good:#4cc36f;--good-soft:#16281c;--warn:#e3b341;--warn-soft:#2b2412;}
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent);text-decoration:none} a:hover{text-decoration:underline}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0 0}
+h1{font-size:18px;margin:0;font-weight:650;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:12.5px}
+nav{display:flex;gap:4px;margin-top:8px}
+nav button{border:0;background:none;padding:10px 12px;font:inherit;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+nav button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+main{padding:18px 0 60px}
+.demo{background:var(--warn-soft);color:var(--warn);border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:13.5px}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin-bottom:16px}
+h2{font-size:15px;margin:0 0 10px;font-weight:650}
+h2 small{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit;font-size:14px}
+input[type=checkbox]{width:auto;margin-right:6px}
+.chk{display:flex;align-items:center;font-size:13.5px;color:var(--ink);padding-top:20px}
+details.more{margin-top:10px}
+details.more>summary{cursor:pointer;color:var(--accent);font-size:13.5px;list-style:none}
+details.more>summary::before{content:"+ "} details.more[open]>summary::before{content:"− "}
+details.more .grid{margin-top:10px}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--ink);padding:7px 12px;border-radius:8px;font:inherit;font-size:13px;cursor:pointer}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+table.mini{width:100%;border-collapse:collapse;font-size:13.5px}
+table.mini th{text-align:left;color:var(--muted);font-weight:500;font-size:12px;padding:6px 8px;border-bottom:1px solid var(--line)}
+table.mini td{padding:8px;border-bottom:1px solid var(--line);vertical-align:top}
+table.mini tr:last-child td{border-bottom:0}
+.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-left:4px;vertical-align:1px}
+.tag.g{background:var(--good-soft);color:var(--good)} .tag.w{background:var(--warn-soft);color:var(--warn)}
+.down{color:var(--good);font-weight:600}
+.fa{color:var(--faint);font-size:12px}
+.mu{color:var(--muted)}
+.res{border:1px solid var(--line);border-radius:10px;margin-bottom:8px;background:var(--card)}
+.res>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;grid-template-columns:1.6fr 1.3fr 1fr auto;gap:10px;align-items:center}
+.res>summary::-webkit-details-marker{display:none}
+.res[open]>summary{border-bottom:1px solid var(--line)}
+.route{font-weight:600} .dates{font-size:13.5px}
+.miles{font-weight:650;text-align:right} .miles small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.chev{color:var(--faint);transition:transform .15s} .res[open] .chev{transform:rotate(90deg)}
+@media (max-width:640px){.res>summary{grid-template-columns:1fr auto 10px;row-gap:2px}.res>summary .mid{grid-column:1;grid-row:2}.res>summary .miles{grid-column:2;grid-row:1/3}.res>summary .chev{grid-column:3;grid-row:1/3}
+  .leg{grid-template-columns:14px 1fr}.leg>div:last-child{grid-column:2;text-align:left!important}}
+.legs{padding:12px 14px 14px}
+.leg{display:grid;grid-template-columns:22px 1fr auto;gap:8px;padding:8px 0;border-bottom:1px dashed var(--line)}
+.leg:last-of-type{border-bottom:0}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--accent);margin:5px auto 0}
+.dot.n{background:var(--faint)}
+.note{font-size:12.5px;padding:8px 10px;border-radius:8px;margin:8px 0;background:var(--warn-soft);color:var(--warn)}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-top:10px}
+.info div{font-size:12.5px;color:var(--muted);background:var(--bg);border-radius:8px;padding:8px 10px}
+.info b{color:var(--ink);font-weight:600;display:block;margin-bottom:2px}
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:4px 0 10px;flex-wrap:wrap}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal div{background:var(--bg);border-radius:6px;padding:6px 4px;text-align:center;font-size:12px;min-height:46px}
+.cal div.h{background:none;color:var(--muted);min-height:0}
+.cal div b{display:block;font-size:11px;color:var(--muted);font-weight:500}
+.cal div.best{background:var(--good-soft);color:var(--good);font-weight:600}
+.cal div.has{cursor:pointer}
+.empty{color:var(--muted);text-align:center;padding:30px 10px}
+.lesson h3{font-size:15px;margin:18px 0 6px}
+.lesson p,.lesson li{color:var(--ink);font-size:14px}
+.lesson ol{padding-left:20px}
+.calc{background:var(--bg);border-radius:10px;padding:14px;margin-top:10px}
+.big{font-size:22px;font-weight:700}
+pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px}
+.hide{display:none!important}
+footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <h1>✈️ Buscador de Milhas</h1>
+        <div class="sub">Rio Preto → mundo, ida e volta · <span id="upd">carregando…</span></div>
+      </div>
+    </div>
+    <nav>
+      <button data-tab="buscar" class="on">Buscar</button>
+      <button data-tab="aprenda">Aprenda</button>
+      <button data-tab="alertas">Alertas</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="demo" class="demo hide">Você está vendo <b>dados de exemplo</b>. Os preços reais aparecem depois que o robô rodar com a sua chave do Seats.aero.</div>
+
+  <!-- ============ BUSCAR ============ -->
+  <div id="tab-buscar">
+    <section class="card">
+      <h2>🔥 Imperdíveis do momento <small>bem abaixo do preço normal</small></h2>
+      <div id="impAgora"></div>
+    </section>
+
+    <section class="card">
+      <h2>Filtros</h2>
+      <div class="grid">
+        <div><label>Destino</label><select id="fDest"></select></div>
+        <div><label>Ida a partir de</label><input type="date" id="fIdaDe"></div>
+        <div><label>Ida até</label><input type="date" id="fIdaAte"></div>
+        <div><label>Duração (dias)</label>
+          <div style="display:flex;gap:6px"><input type="number" id="fDurMin" min="1" value="5" title="mínimo"><input type="number" id="fDurMax" min="1" value="20" title="máximo"></div></div>
+        <div><label>Classe</label><select id="fCab">
+          <option value="Y">Econômica</option><option value="W">Premium economy</option>
+          <option value="J">Executiva</option><option value="F">Primeira</option></select></div>
+        <div><label>Máximo de milhas (ida+volta)</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
+      </div>
+      <details class="more">
+        <summary>mais filtros</summary>
+        <div class="grid">
+          <div><label>Volta a partir de</label><input type="date" id="fVoltaDe"></div>
+          <div><label>Volta até</label><input type="date" id="fVoltaAte"></div>
+          <div><label>Programa</label><select id="fProg"><option value="">Todos</option></select></div>
+          <div><label>Companhia aérea</label><select id="fCia"><option value="">Todas</option></select></div>
+          <div><label>Sair por</label><select id="fPorta"><option value="">GRU ou VCP</option><option>GRU</option><option>VCP</option></select></div>
+          <div><label>Assentos (mínimo)</label><input type="number" id="fAss" min="1" value="1"></div>
+          <div><label>Ordenar por</label><select id="fOrd">
+            <option value="custo">Menor custo estimado (R$)</option><option value="milhas">Menos milhas</option><option value="data">Data</option></select></div>
+          <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fDireto">Só voo direto</label></div>
+          <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fJaw">Voltar de outra cidade</label></div>
+        </div>
+      </details>
+    </section>
+
+    <section class="card">
+      <div class="toolbar">
+        <h2 style="margin:0">Viagens disponíveis <small id="count"></small></h2>
+        <button class="btn" id="btnCal" title="Escolha um destino específico para ver o calendário">📅 ver calendário</button>
+      </div>
+      <div id="calBox" class="hide"></div>
+      <div id="results"></div>
+      <div style="text-align:center"><button class="btn hide" id="btnMore">mostrar mais</button></div>
+    </section>
+
+    <section class="card">
+      <h2>🕓 Imperdíveis que já passaram <small>para ter noção do que vale esperar</small></h2>
+      <div id="impPassadas"></div>
+    </section>
+  </div>
+
+  <!-- ============ APRENDA ============ -->
+  <div id="tab-aprenda" class="hide lesson">
+    <section class="card">
+      <h2>Mini curso: milhas sem complicação</h2>
+      <h3>1. O que é o “milheiro”</h3>
+      <p>Milheiro é o preço de <b>1.000 milhas</b>. Se você pagou R$ 160 por 10.000 milhas, seu milheiro foi <b>R$ 16</b>. É o número que diz se uma compra de milhas foi boa ou ruim.</p>
+      <p class="mu">Conta: <b>valor pago ÷ milhas recebidas × 1.000</b> (as milhas de bônus contam).</p>
+
+      <h3>2. Três jeitos de conseguir milhas</h3>
+      <ol>
+        <li><b>Comprar direto no programa</b> — só vale com promoção (bônus ou desconto). Preço cheio quase nunca compensa.</li>
+        <li><b>Assinar o clube</b> do programa — você paga por mês e recebe milhas. Os clubes também liberam os maiores bônus nas promoções.</li>
+        <li><b>Transferir pontos do cartão</b> (Livelo, Esfera, pontos do banco) — espere uma <b>transferência bonificada</b> (bônus de 50% a 100%+).</li>
+      </ol>
+
+      <h3>3. Passo a passo para comprar milhas</h3>
+      <div id="howto"></div>
+
+      <h3>4. Para emitir a passagem</h3>
+      <ol>
+        <li>No buscador, abra a viagem e clique em <b>“ir para a passagem”</b>: abre o site do programa já com companhia, origem, destino e data. (Se o botão não aparecer, use o link do Seats.aero ou do site do programa.)</li>
+        <li>Faça login e confira se a tarifa ainda está lá (às vezes só aparece buscando trecho só de ida).</li>
+        <li>Confira milhas + taxas, os nomes exatamente como no passaporte e emita.</li>
+        <li><b>Bilhetes separados:</b> se o trecho Rio Preto–São Paulo for outro bilhete, deixe folga grande ou chegue no dia anterior.</li>
+      </ol>
+      <p class="mu">Dica: só compre milhas <b>depois</b> de achar a passagem, e de preferência com a tarifa ainda aparecendo. A disponibilidade pode sumir.</p>
+    </section>
+
+    <section class="card">
+      <h2>Quando vale a pena? (calculadora)</h2>
+      <p class="mu" style="margin-top:0">Compare a passagem em milhas com o preço da mesma passagem em dinheiro (Google Flights, site da companhia).</p>
+      <div class="calc">
+        <div class="grid">
+          <div><label>Milhas da passagem</label><input type="number" id="cMi" value="120000"></div>
+          <div><label>Taxas (R$)</label><input type="number" id="cTx" value="600"></div>
+          <div><label>Seu milheiro (R$ por 1.000)</label><input type="number" id="cMil" value="16" step="0.5"></div>
+          <div><label>Preço em dinheiro (R$)</label><input type="number" id="cDin" value="6000"></div>
+        </div>
+        <p id="cRes" style="margin:12px 0 0"></p>
+      </div>
+      <h3>Referência de milheiro bom</h3>
+      <div id="refTable"></div>
+      <p class="fa">Valores aproximados de referência (2026). Programas estrangeiros vendem em dólar; o valor em reais muda com o câmbio.</p>
+    </section>
+
+    <section class="card">
+      <h2>Quando costuma ter promoção</h2>
+      <div id="promoTable"></div>
+      <p class="fa">Os programas não anunciam com antecedência; isso é o padrão histórico. Black Friday (fim de novembro) costuma ser a data mais forte para transferências bonificadas.</p>
+    </section>
+  </div>
+
+  <!-- ============ ALERTAS ============ -->
+  <div id="tab-alertas" class="hide lesson">
+    <section class="card">
+      <h2>Alertas pelo Telegram <small>opcional</small></h2>
+      <p>Quando ligado, o robô te manda mensagem no Telegram quando aparecer uma passagem de <b>ida</b> que encaixa no seu alerta. Cada passagem é avisada uma vez só.</p>
+      <div class="grid">
+        <div><label>Nome do alerta</label><input id="aNome" value="Europa executiva"></div>
+        <div><label>Destino</label><select id="aDest"></select></div>
+        <div><label>Classe</label><select id="aCab"><option value="Y">Econômica</option><option value="W">Premium</option><option value="J" selected>Executiva</option><option value="F">Primeira</option></select></div>
+        <div><label>Máximo de milhas (só ida)</label><input type="number" id="aMax" value="150000" step="5000"></div>
+        <div><label>Ida a partir de</label><input type="date" id="aDe"></div>
+        <div><label>Ida até</label><input type="date" id="aAte"></div>
+      </div>
+      <p style="margin-bottom:4px">Cole este bloco dentro da lista <code>"alertas"</code> do arquivo <code>config/alertas.json</code> no GitHub (e mude <code>"ativo"</code> para <code>true</code>):</p>
+      <pre id="aOut"></pre>
+      <button class="btn" id="aCopy">copiar</button>
+      <h3>Como criar o bot (2 minutos)</h3>
+      <ol>
+        <li>No Telegram, procure <b>@BotFather</b>, mande <code>/newbot</code> e escolha um nome. Ele te dá um <b>token</b>.</li>
+        <li>Abra o seu bot novo e mande qualquer mensagem (“oi”).</li>
+        <li>Para descobrir seu <b>chat id</b>, procure <b>@userinfobot</b> no Telegram e mande “oi”; ele responde com seu id.</li>
+        <li>No GitHub: <b>Settings → Secrets and variables → Actions → New repository secret</b>. Crie <code>TELEGRAM_TOKEN</code> e <code>TELEGRAM_CHAT_ID</code>.</li>
+      </ol>
+    </section>
+  </div>
+</main>
+<footer>Dados de disponibilidade: <a href="https://seats.aero" target="_blank" rel="noopener">seats.aero</a> · uso pessoal</footer>
+
+<script>
+/* ===================== Dados fixos ===================== */
+const CAB = {Y:"Econômica",W:"Premium",J:"Executiva",F:"Primeira"};
+const REG = {"North America":"América do Norte","South America":"América do Sul","Europe":"Europa","Asia":"Ásia","Africa":"África","Oceania":"Oceania","Middle East":"Oriente Médio","Central America":"América Central","Caribbean":"Caribe"};
+const AP = {GRU:"Guarulhos",VCP:"Viracopos",CGH:"Congonhas",SJP:"Rio Preto",LIS:"Lisboa",OPO:"Porto",MAD:"Madri",BCN:"Barcelona",CDG:"Paris",ORY:"Paris Orly",FCO:"Roma",MXP:"Milão",LHR:"Londres",LGW:"Londres Gatwick",FRA:"Frankfurt",MUC:"Munique",AMS:"Amsterdã",ZRH:"Zurique",IST:"Istambul",DXB:"Dubai",DOH:"Doha",AUH:"Abu Dhabi",ADD:"Adis Abeba",JFK:"Nova York",EWR:"Nova York (Newark)",MIA:"Miami",MCO:"Orlando",FLL:"Fort Lauderdale",ATL:"Atlanta",IAH:"Houston",ORD:"Chicago",DFW:"Dallas",LAX:"Los Angeles",IAD:"Washington",YYZ:"Toronto",YUL:"Montreal",PTY:"Panamá",MEX:"Cidade do México",CUN:"Cancún",BOG:"Bogotá",LIM:"Lima",SCL:"Santiago",EZE:"Buenos Aires",AEP:"Buenos Aires (Aeroparque)",MVD:"Montevidéu",ASU:"Assunção",NRT:"Tóquio",HND:"Tóquio Haneda",SIN:"Singapura",JNB:"Joanesburgo",LAD:"Luanda",CMN:"Casablanca",HEL:"Helsinque",CPH:"Copenhague",ARN:"Estocolmo",SYD:"Sydney",MEL:"Melbourne",AKL:"Auckland",UIO:"Quito",PUJ:"Punta Cana",SDQ:"Santo Domingo",HAV:"Havana",BRU:"Bruxelas",VIE:"Viena",ATH:"Atenas",DUB:"Dublin",EDI:"Edimburgo",JED:"Jidá",RUH:"Riade",ICN:"Seul",PEK:"Pequim",HKG:"Hong Kong",BKK:"Bangkok",DEL:"Nova Délhi"};
+const TRANSFER_BR = "Recebe pontos de Livelo, Esfera e da maioria dos cartões de bancos brasileiros (Itaú, Bradesco, BB, Caixa, C6, XP…), geralmente com transferências bonificadas algumas vezes por ano.";
+const TRANSFER_EXT = "Em geral não recebe pontos de cartões brasileiros: o caminho é comprar milhas direto no site do programa, em promoção (paga em dólar no cartão internacional, com IOF).";
+const CANCEL = "Regra e taxa de cancelamento mudam por programa e tarifa: confira na tela de emissão antes de pagar.";
+// ref: R$ por milheiro (programas BR) ou centavos de dólar por milha (estrangeiros) num bom preço de promoção
+const PROG = {
+  smiles:{n:"Smiles (GOL)",u:"https://www.smiles.com.br",brl:16,promo:"Picos em mar, jun, set e nov · aniversário GOL (15/jan), Clube Smiles (20/mar), Smiles (18/out) · Black Friday",t:TRANSFER_BR,
+    how:["Entre em smiles.com.br e faça login.","Menu “Comprar milhas”: escolha a quantidade (mínimo 1.000).","Confira o milheiro final com o bônus (assinantes do Clube ganham bônus maiores).","Pague (até 10x). As milhas caem em até 72h."]},
+  azul:{n:"Azul Fidelidade",u:"https://www.voeazul.com.br/br/pt/azul-fidelidade",brl:16,promo:"Aniversário Clube Azul (13/jan), Cartão Azul Itaú (20/out), Azul Friday (nov) e aniversário Azul (15/dez)",t:TRANSFER_BR,
+    how:["Entre em voeazul.com.br > Azul Fidelidade e faça login.","Opção “Comprar pontos” (ou assine o Clube Azul, que costuma ter bônus de adesão).","Confira o custo por 1.000 pontos com o bônus.","Pague e aguarde o crédito."]},
+  aeroplan:{n:"Aeroplan (Air Canada)",u:"https://www.aircanada.com/aeroplan",usd:1.45,promo:"Promoções de compra com até 90% de bônus várias vezes por ano · aniversário em setembro",t:TRANSFER_EXT},
+  flyingblue:{n:"Flying Blue (Air France-KLM)",u:"https://www.flyingblue.com",usd:1.7,promo:"Promoções frequentes de até 80% de bônus ou 45% de desconto · “Promo Rewards” mensais",t:TRANSFER_EXT},
+  lifemiles:{n:"LifeMiles (Avianca)",u:"https://www.lifemiles.com",usd:1.4,promo:"Bônus de compra muito frequentes (100%–155%) · aniversário Avianca (5/dez)",t:TRANSFER_EXT},
+  united:{n:"United MileagePlus",u:"https://www.united.com/mileageplus",usd:1.9,promo:"Promoções de compra algumas vezes por ano",t:TRANSFER_EXT},
+  american:{n:"American AAdvantage",u:"https://www.aa.com/aadvantage",usd:2.0,promo:"Descontos de 10%–40% na compra algumas vezes por ano",t:TRANSFER_EXT},
+  alaska:{n:"Alaska Atmos",u:"https://www.alaskaair.com",usd:1.9,promo:"Promoções de até 100% de bônus na compra",t:TRANSFER_EXT},
+  jetblue:{n:"JetBlue TrueBlue",u:"https://www.jetblue.com/trueblue",usd:1.45,promo:"Bônus de 100%–125% na compra algumas vezes por ano",t:TRANSFER_EXT},
+  turkish:{n:"Turkish Miles&Smiles",u:"https://www.turkishairlines.com/pt-br/miles-and-smiles",usd:3.0,promo:"Raramente vende milhas baratas; melhor acumular voando ou por parceiros",t:TRANSFER_EXT},
+  emirates:{n:"Emirates Skywards",u:"https://www.emirates.com/skywards",usd:3.0,promo:"Aniversário Emirates (2/dez) · promoções esporádicas",t:TRANSFER_EXT},
+  copa:{n:"Copa ConnectMiles",u:"https://www.copaair.com/connectmiles",usd:2.0,promo:"Descontos de 30%–40% na compra de grandes lotes, esporádicos",t:TRANSFER_EXT},
+  qatar:{n:"Qatar Privilege Club",u:"https://www.qatarairways.com/privilegeclub",usd:2.0,promo:"Promoções esporádicas de Avios",t:TRANSFER_EXT},
+  delta:{n:"Delta SkyMiles",u:"https://www.delta.com/skymiles",usd:2.5,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  lufthansa:{n:"Miles & More (Lufthansa)",u:"https://www.miles-and-more.com",usd:2.5,promo:"Promoções esporádicas · aniversário Lufthansa (6/jan)",t:TRANSFER_EXT},
+  virginatlantic:{n:"Virgin Atlantic Flying Club",u:"https://www.virginatlantic.com",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  etihad:{n:"Etihad Guest",u:"https://www.etihadguest.com",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  aeromexico:{n:"Aeroméxico Rewards",u:"https://www.aeromexicorewards.com",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  ethiopian:{n:"Ethiopian ShebaMiles",u:"https://www.ethiopianairlines.com/shebamiles",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  finnair:{n:"Finnair Plus",u:"https://www.finnair.com/finnair-plus",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  eurobonus:{n:"SAS EuroBonus",u:"https://www.flysas.com/eurobonus",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  qantas:{n:"Qantas",u:"https://www.qantas.com/frequentflyer",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  saudia:{n:"Saudia AlFursan",u:"https://www.saudia.com/alfursan",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  singapore:{n:"Singapore KrisFlyer",u:"https://www.singaporeair.com/krisflyer",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+  velocity:{n:"Virgin Australia Velocity",u:"https://www.velocityfrequentflyer.com",usd:2.0,promo:"Promoções esporádicas",t:TRANSFER_EXT},
+};
+const progName = p => (PROG[p]||{}).n || p;
+
+/* ===================== Utilidades ===================== */
+const $ = id => document.getElementById(id);
+const fmt = n => n==null ? "—" : Math.round(n).toLocaleString("pt-BR");
+const fmtK = n => n>=1000 ? (n/1000).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mil" : fmt(n);
+const brl = n => n==null ? "?" : "R$ "+fmt(n);
+const ap = c => AP[c] ? `${AP[c]} <span class="fa">${c}</span>` : c;
+const apTxt = c => AP[c] || c;
+const dBR = s => { const [y,m,d]=s.split("-"); return `${d}/${m}/${y.slice(2)}`; };
+const dShort = s => { const [y,m,d]=s.split("-"); return `${d}/${m}`; };
+const toD = s => new Date(s+"T12:00:00Z");
+const days = (a,b) => Math.round((toD(b)-toD(a))/864e5);
+const addD = (s,n) => { const d=toD(s); d.setUTCDate(d.getUTCDate()+n); return d.toISOString().slice(0,10); };
+const ago = iso => { if(!iso) return ""; const h=(Date.now()-new Date(iso))/36e5; return h<1?"há menos de 1h":h<48?`há ${Math.round(h)}h`:`há ${Math.round(h/24)} dias`; };
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let USD = 5.4;
+function milheiro(p){ const x=PROG[p]; if(!x) return 2.0*10*USD; return x.brl ? x.brl : x.usd*10*USD; } // R$ por 1.000
+const custoR = (p,mi,tx) => mi/1000*milheiro(p) + (tx||0);
+
+/* ===================== Dados de exemplo ===================== */
+function demoData(){
+  let s=7; const rnd=()=>(s=(s*16807)%2147483647)/2147483647;
+  const pick=a=>a[Math.floor(rnd()*a.length)];
+  const dests=[["LIS","Europe",["TP"]],["MAD","Europe",["IB","UX"]],["CDG","Europe",["AF"]],["FCO","Europe",["AZ"]],["FRA","Europe",["LH"]],["IST","Europe",["TK"]],["MIA","North America",["AA"]],["MCO","North America",["AD","AA"]],["JFK","North America",["AA","DL"]],["SCL","South America",["LA","JA"]],["EZE","South America",["AR"]],["LIM","South America",["LA"]],["DXB","Middle East",["EK"]],["DOH","Middle East",["QR"]],["PTY","Central America",["CM"]],["CUN","North America",["CM"]],["BOG","South America",["AV"]]];
+  const progs={smiles:[1,1.0],azul:[1,1.05],aeroplan:[0.42,1],flyingblue:[0.5,1],lifemiles:[0.45,1],united:[0.55,1],turkish:[0.45,1],american:[0.5,1]};
+  const base={Europe:[75000,180000],"North America":[60000,150000],"South America":[30000,80000],"Middle East":[90000,220000],"Central America":[35000,90000]};
+  const today=new Date().toISOString().slice(0,10); const ida=[],volta=[],nac=[]; let id=1;
+  const mk=(o,d,ro,rd,p,dt,air,mult)=>{const c={};const b=base[ro==="South America"&&rd!=="South America"?rd:ro]||base[rd];
+    const y=Math.round(b[0]*progs[p][0]*mult*(0.7+rnd()*0.8)/500)*500;
+    if(rnd()<0.85)c.Y=[y,Math.round(150+rnd()*900),1+Math.floor(rnd()*7),rnd()<.5?1:0,air,600+Math.floor(rnd()*600)];
+    if(rnd()<0.55)c.J=[Math.round(y*(2.3+rnd()*0.8)/500)*500,Math.round(300+rnd()*1800),1+Math.floor(rnd()*3),rnd()<.5?1:0,air,600+Math.floor(rnd()*600)];
+    if(rnd()<0.15)c.W=[Math.round(y*1.6/500)*500,Math.round(250+rnd()*900),2,0,air,700];
+    if(!Object.keys(c).length) return null;
+    const r={id:"demo"+(id++),p,o,d,ro,rd,dt,u:new Date(Date.now()-rnd()*30*36e5).toISOString(),c}; if(rnd()<.2)r.s=["Y"]; return r;};
+  for(let i=8;i<300;i+=1+Math.floor(rnd()*3)){ const dt=addD(today,i);
+    for(let k=0;k<3;k++){ const [d,rg,airs]=pick(dests); const p=pick(Object.keys(progs)); const g=rnd()<.7?"GRU":"VCP";
+      const a=mk(g,d,"South America",rg,p,dt,pick(airs),1); if(a)ida.push(a);
+      const [d2,rg2,airs2]=pick(dests); const b=mk(d2,rnd()<.7?"GRU":"VCP",rg2,"South America",pick(Object.keys(progs)),dt,pick(airs2),1); if(b)volta.push(b);}
+    for(const [o,d] of [["SJP","GRU"],["SJP","VCP"],["SJP","CGH"],["GRU","SJP"],["VCP","SJP"],["CGH","SJP"]]) if(rnd()<.35){
+      const p=d==="VCP"||o==="VCP"?"azul":pick(["smiles","azul"]); nac.push({id:"demo"+(id++),p,o,d,ro:"South America",rd:"South America",dt,u:new Date().toISOString(),c:{Y:[Math.round((5000+rnd()*12000)/500)*500,Math.round(30+rnd()*50),4,1,p==="azul"?"AD":"G3",65]}});}
+  }
+  const all=[...ida,...volta]; const agora=[],passadas=[];
+  for(const r of all){ const v=r.c.Y||r.c.J; const cab=r.c.Y?"Y":"J"; if(rnd()<0.012) agora.push({k:r.id,id:r.id,p:r.p,o:r.o,d:r.d,dt:r.dt,cab,mi:v[0],tx:v[1],ref:Math.round(v[0]/0.6),desc:40,base:"média da rota",visto_desde:new Date(Date.now()-rnd()*5*864e5).toISOString()});}
+  for(let i=0;i<8;i++){ const [d]=pick(dests); const p=pick(Object.keys(progs)); const mi=Math.round((40000+rnd()*90000)/500)*500;
+    passadas.push({k:"x"+i,id:"",p,o:"GRU",d,dt:addD(today,-20+i*9),cab:rnd()<.5?"Y":"J",mi,tx:400,ref:Math.round(mi/0.6),desc:Math.round(32+rnd()*25),visto_desde:new Date(Date.now()-(i+10)*864e5).toISOString(),sumiu_em:new Date(Date.now()-(i+8)*864e5).toISOString()});}
+  agora.sort((a,b)=>b.desc-a.desc);
+  return [{atualizado:new Date().toISOString(),cambio:{USD:5.4},ida,volta,nacional:nac,demo:true},{agora:agora.slice(0,10),passadas}];
+}
+
+/* ===================== Estado / carga ===================== */
+let D, IMP, LINKS={}, shown=40, lastList=[];
+const real = id => id && !String(id).startsWith("demo");
+// Botões de emissão: link direto (quando o robô já buscou) > página no Seats.aero > site do programa
+function linksHtml(r){
+  const direto = LINKS[r.id];
+  const seats = real(r.id) ? `<a href="https://seats.aero/i/${encodeURIComponent(r.id)}" target="_blank" rel="noopener">Seats.aero</a>` : "";
+  const site = `<a href="${(PROG[r.p]||{}).u||"#"}" target="_blank" rel="noopener">site do programa</a>`;
+  if(direto) return `<a class="btn pri" style="display:inline-block;padding:3px 9px;font-size:12px;margin-top:3px" href="${esc(direto)}" target="_blank" rel="noopener">ir para a passagem ↗</a>`;
+  return [seats, site].filter(Boolean).join(" · ");
+}
+async function load(){
+  try{
+    const [a,b]=await Promise.all([fetch("data/voos.json",{cache:"no-store"}),fetch("data/imperdiveis.json",{cache:"no-store"})]);
+    if(!a.ok) throw 0; D=await a.json(); IMP=b.ok?await b.json():{agora:[],passadas:[]};
+    if(!D.ida||!D.ida.length) throw 0;
+    try{ const c=await fetch("data/links.json",{cache:"no-store"}); if(c.ok) LINKS=await c.json(); }catch(e){}
+  }catch(e){ [D,IMP]=demoData(); for(const r of [...D.ida,...D.volta]) if(PROG[r.p]) LINKS[r.id]=PROG[r.p].u; }
+  if(D.demo) $("demo").classList.remove("hide");
+  USD = (D.cambio&&D.cambio.USD)||USD;
+  $("upd").textContent = "atualizado " + ago(D.atualizado);
+  // índices
+  D.byOrig={}; for(const r of D.volta)(D.byOrig[r.o]=D.byOrig[r.o]||[]).push(r);
+  D.byReg={};  for(const r of D.volta)(D.byReg[r.ro]=D.byReg[r.ro]||[]).push(r);
+  D.nacIda={}; D.nacVolta={};
+  for(const r of D.nacional){ if(r.o==="SJP")(D.nacIda[r.dt]=D.nacIda[r.dt]||[]).push(r); else (D.nacVolta[r.dt]=D.nacVolta[r.dt]||[]).push(r); }
+  buildOptions(); bind(); render(); renderImp(); renderLearn(); renderAlert();
+}
+
+function buildOptions(){
+  const regs=[...new Set(D.ida.map(r=>r.rd))].sort();
+  const cities=[...new Set(D.ida.map(r=>r.d))].sort((a,b)=>apTxt(a).localeCompare(apTxt(b)));
+  const opts=`<option value="*">🌎 Qualquer lugar</option><optgroup label="Regiões">${regs.map(r=>`<option value="${esc(r)}">${REG[r]||r}</option>`).join("")}</optgroup><optgroup label="Cidades">${cities.map(c=>`<option value="${c}">${apTxt(c)} (${c})</option>`).join("")}</optgroup>`;
+  $("fDest").innerHTML=opts; $("aDest").innerHTML=opts;
+  const progs=[...new Set([...D.ida,...D.volta].map(r=>r.p))].sort((a,b)=>progName(a).localeCompare(progName(b)));
+  $("fProg").innerHTML+=progs.map(p=>`<option value="${p}">${progName(p)}</option>`).join("");
+  const cias=new Set(); for(const r of D.ida) for(const v of Object.values(r.c)) (v[4]||"").split(",").forEach(c=>c&&cias.add(c.trim()));
+  $("fCia").innerHTML+=[...cias].sort().map(c=>`<option>${c}</option>`).join("");
+  const t=new Date().toISOString().slice(0,10); $("fIdaDe").value=t; $("aDe").value=t;
+}
+
+function bind(){
+  document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
+    ["buscar","aprenda","alertas"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.tab));});
+  ["fDest","fIdaDe","fIdaAte","fDurMin","fDurMax","fCab","fMax","fVoltaDe","fVoltaAte","fProg","fCia","fPorta","fAss","fOrd","fDireto","fJaw"]
+    .forEach(id=>$(id).addEventListener("input",()=>{shown=40;render();if(!$("calBox").classList.contains("hide"))renderCal();}));
+  $("btnMore").onclick=()=>{shown+=40;draw();};
+  $("btnCal").onclick=()=>{ $("calBox").classList.toggle("hide"); renderCal(); };
+  ["cMi","cTx","cMil","cDin"].forEach(id=>$(id).addEventListener("input",calc));
+  ["aNome","aDest","aCab","aMax","aDe","aAte"].forEach(id=>$(id).addEventListener("input",renderAlert));
+  $("aCopy").onclick=()=>navigator.clipboard&&navigator.clipboard.writeText($("aOut").textContent).then(()=>$("aCopy").textContent="copiado ✓");
+}
+
+/* ===================== Busca: monta ida+volta ===================== */
+function F(){ return {dest:$("fDest").value, idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, dmin:+$("fDurMin").value||1, dmax:+$("fDurMax").value||60,
+  cab:$("fCab").value, max:+$("fMax").value||Infinity, vDe:$("fVoltaDe").value, vAte:$("fVoltaAte").value, prog:$("fProg").value, cia:$("fCia").value,
+  porta:$("fPorta").value, ass:+$("fAss").value||1, ord:$("fOrd").value, dir:$("fDireto").checked, jaw:$("fJaw").checked}; }
+
+function legOk(r,f){
+  const v=r.c[f.cab]; if(!v) return false;
+  if(f.prog && r.p!==f.prog) return false;
+  if(f.cia && !(v[4]||"").split(",").map(s=>s.trim()).includes(f.cia)) return false;
+  if(f.dir && !v[3]) return false;
+  if((v[2]||0) < f.ass) return false;
+  return true;
+}
+function matchDest(r,f){ return f.dest==="*" || r.d===f.dest || r.rd===f.dest; }
+
+function bestNac(list){ if(!list||!list.length) return null; return list.reduce((a,b)=>custoR(a.p,a.c.Y?.[0]||1e9,a.c.Y?.[1])<=custoR(b.p,b.c.Y?.[0]||1e9,b.c.Y?.[1])?a:b); }
+function nacIda(intl){ // Rio Preto -> SP no mesmo dia ou no dia anterior
+  const same=(D.nacIda[intl.dt]||[]).filter(r=>r.c.Y), prev=(D.nacIda[addD(intl.dt,-1)]||[]).filter(r=>r.c.Y);
+  const pref=same.filter(r=>r.d===intl.o), prefP=prev.filter(r=>r.d===intl.o);
+  return bestNac(prefP)||bestNac(pref)||bestNac(prev)||bestNac(same);
+}
+function nacVolta(intl){ // SP -> Rio Preto no mesmo dia ou no dia seguinte
+  const same=(D.nacVolta[intl.dt]||[]).filter(r=>r.c.Y), next=(D.nacVolta[addD(intl.dt,1)]||[]).filter(r=>r.c.Y);
+  return bestNac(next.filter(r=>r.o===intl.d))||bestNac(same.filter(r=>r.o===intl.d))||bestNac(next)||bestNac(same);
+}
+
+function search(){
+  const f=F(); const out=[];
+  for(const a of D.ida){
+    if(f.porta && a.o!==f.porta) continue;
+    if(!matchDest(a,f) || !legOk(a,f)) continue;
+    if(f.idaDe && a.dt<f.idaDe) continue; if(f.idaAte && a.dt>f.idaAte) continue;
+    const cands = f.jaw ? (D.byReg[a.rd]||[]) : (D.byOrig[a.d]||[]);
+    let best=null, bestC=Infinity;
+    for(const b of cands){
+      const n=days(a.dt,b.dt); if(n<f.dmin||n>f.dmax) continue;
+      if(f.vDe && b.dt<f.vDe) continue; if(f.vAte && b.dt>f.vAte) continue;
+      if(!legOk(b,f)) continue;
+      const c=custoR(b.p,b.c[f.cab][0],b.c[f.cab][1]); if(c<bestC){bestC=c;best=b;}
+    }
+    if(!best) continue;
+    const va=a.c[f.cab], vb=best.c[f.cab];
+    const mi=va[0]+vb[0]; if(mi>f.max) continue;
+    const tx=(va[1]==null||vb[1]==null)?null:va[1]+vb[1];
+    out.push({a,b:best,mi,tx,custo:custoR(a.p,va[0],va[1])+bestC,n:days(a.dt,best.dt)});
+  }
+  // 1 resultado por destino+data de ida (o mais barato)
+  const seen=new Map(); for(const r of out){const k=r.a.d+r.a.dt; const o=seen.get(k); if(!o||r.custo<o.custo) seen.set(k,r);}
+  const list=[...seen.values()];
+  list.sort(f.ord==="milhas"?(x,y)=>x.mi-y.mi:f.ord==="data"?(x,y)=>x.a.dt.localeCompare(y.a.dt):(x,y)=>x.custo-y.custo);
+  return list;
+}
+
+function render(){ lastList=search(); draw(); }
+function draw(){
+  const f=F(), L=lastList;
+  $("count").textContent = L.length ? `${fmt(L.length)} opções · ${CAB[f.cab].toLowerCase()}` : "";
+  if(!L.length){ $("results").innerHTML=`<div class="empty">Nenhuma viagem com esses filtros. Tente aumentar a duração, o período ou o máximo de milhas.</div>`; $("btnMore").classList.add("hide"); return; }
+  $("results").innerHTML = L.slice(0,shown).map((r,i)=>card(r,f,i)).join("");
+  $("btnMore").classList.toggle("hide", L.length<=shown);
+}
+
+function legRow(r,cab,label,nac){
+  const v=r.c[cab]||r.c.Y; const saver=(r.s||[]).includes(cab);
+  const dur=v[5]?` · ${Math.floor(v[5]/60)}h${String(v[5]%60).padStart(2,"0")}`:"";
+  return `<div class="leg"><div class="dot ${nac?"n":""}"></div>
+   <div><div><b>${label}</b> · ${dBR(r.dt)} · ${ap(r.o)} → ${ap(r.d)}</div>
+   <div class="fa">${progName(r.p)}${v[4]?` · ${esc(v[4])}`:""}${v[3]?" · direto":""}${dur} · ${v[2]} assento(s) · visto ${ago(r.u)}</div></div>
+   <div style="text-align:right"><b>${fmtK(v[0])}</b>${saver?'<span class="tag g" title="No menor patamar já visto para essa rota">saver</span>':""}<div class="fa">+ ${brl(v[1])} taxas</div>
+   <div class="fa">${linksHtml(r)}</div></div></div>`;
+}
+function nacMissing(label,o,d,dt){
+  return `<div class="leg"><div class="dot n"></div><div><div><b>${label}</b> · ${dBR(dt)} · ${ap(o)} → ${ap(d)}</div>
+   <div class="fa">Sem dado de milhas para esse trecho. Confira direto na Azul (voa Rio Preto–Viracopos) ou na Smiles/LATAM.</div></div>
+   <div style="text-align:right" class="fa"><a href="${PROG.azul.u}" target="_blank" rel="noopener">Azul</a> · <a href="${PROG.smiles.u}" target="_blank" rel="noopener">Smiles</a></div></div>`;
+}
+
+function card(r,f,i){
+  const {a,b}=r; const ni=nacIda(a), nv=nacVolta(b);
+  const notes=[];
+  if(ni && ni.d!==a.o) notes.push(`Troca de aeroporto na ida: você chega em <b>${apTxt(ni.d)}</b> e o voo internacional sai de <b>${apTxt(a.o)}</b>. Conte 1h30–2h de transfer (ônibus do aeroporto ou app) e muita folga.`);
+  if(nv && nv.o!==b.d) notes.push(`Troca de aeroporto na volta: chega em <b>${apTxt(b.d)}</b> e o voo para Rio Preto sai de <b>${apTxt(nv.o)}</b>.`);
+  if(ni && ni.dt===a.dt) notes.push(`Ida para São Paulo no mesmo dia do voo internacional. Como são bilhetes separados, um atraso não garante remarcação: se der, prefira ir no dia anterior.`);
+  if(a.o!==b.d) notes.push(`A volta chega em ${apTxt(b.d)}, diferente do aeroporto de saída (${apTxt(a.o)}).`);
+  if(a.d!==b.o) notes.push(`Volta saindo de outra cidade: ${apTxt(b.o)}.`);
+  const nacMi=(ni?.c.Y?.[0]||0)+(nv?.c.Y?.[0]||0);
+  const progs=[...new Set([a.p,b.p,ni?.p,nv?.p].filter(Boolean))];
+  const est = r.custo + (ni?custoR(ni.p,ni.c.Y[0],ni.c.Y[1]):0) + (nv?custoR(nv.p,nv.c.Y[0],nv.c.Y[1]):0);
+  return `<details class="res">
+   <summary>
+     <div><div class="route">Rio Preto → ${esc(apTxt(a.d))}</div><div class="fa">${REG[a.rd]||a.rd||""} · sai por ${a.o}${a.p!==b.p?" · 2 programas":""}</div></div>
+     <div class="dates mid">${dShort(a.dt)} → ${dShort(b.dt)} <span class="mu">· ${r.n} dias</span></div>
+     <div class="miles">${fmtK(r.mi)} <small>+ ${brl(r.tx)} taxas · ≈ ${brl(est)}</small></div>
+     <div class="chev">›</div>
+   </summary>
+   <div class="legs">
+     ${ni?legRow(ni,"Y","Ida · nacional",1):nacMissing("Ida · nacional","SJP",a.o,addD(a.dt,-1))}
+     ${legRow(a,f.cab,"Ida · internacional")}
+     ${legRow(b,f.cab,"Volta · internacional")}
+     ${nv?legRow(nv,"Y","Volta · nacional",1):nacMissing("Volta · nacional",b.d,"SJP",b.dt)}
+     ${notes.map(n=>`<div class="note">${n}</div>`).join("")}
+     <div class="fa" style="margin-top:6px">Total com trechos nacionais: <b>${fmtK(r.mi+nacMi)}</b> milhas. Custo estimado ≈ ${brl(est)} comprando as milhas a um milheiro bom de promoção.</div>
+     <div class="info">${progs.map(p=>{const x=PROG[p]||{};return `<div><b>${progName(p)}</b>📅 ${x.promo||"Promoções esporádicas"}<br>💳 ${x.t||""}<br>↩️ ${CANCEL}</div>`;}).join("")}</div>
+   </div></details>`;
+}
+
+/* ===================== Calendário ===================== */
+function renderCal(){
+  const f=F(), box=$("calBox");
+  if(box.classList.contains("hide")) return;
+  const legs=D.ida.filter(r=>matchDest(r,f)&&legOk(r,f)&&(!f.porta||r.o===f.porta));
+  const min={}; for(const r of legs){const v=r.c[f.cab][0]; if(!min[r.dt]||v<min[r.dt])min[r.dt]=v;}
+  const dts=Object.keys(min).sort(); if(!dts.length){box.innerHTML=`<div class="empty">Sem datas para esse destino/classe.</div>`;return;}
+  const months=[...new Set(dts.map(d=>d.slice(0,7)))];
+  let m=box.dataset.m && months.includes(box.dataset.m)?box.dataset.m:months[0];
+  const [y,mo]=m.split("-").map(Number); const first=new Date(Date.UTC(y,mo-1,1)); const nd=new Date(Date.UTC(y,mo,0)).getUTCDate();
+  const vals=dts.filter(d=>d.startsWith(m)).map(d=>min[d]); const lo=Math.min(...vals);
+  let cells=["D","S","T","Q","Q","S","S"].map(x=>`<div class="h">${x}</div>`).join("")+"<div class='h'></div>".repeat(first.getUTCDay());
+  for(let d=1;d<=nd;d++){const k=`${m}-${String(d).padStart(2,"0")}`; const v=min[k];
+    cells+=`<div class="${v?"has":""} ${v===lo?"best":""}" ${v?`data-d="${k}"`:""}><b>${d}</b>${v?fmtK(v):""}</div>`;}
+  const nm=first.toLocaleDateString("pt-BR",{month:"long",year:"numeric",timeZone:"UTC"});
+  box.innerHTML=`<div class="toolbar" style="margin:0"><div class="mu" style="font-size:13px">Menor milhagem de <b>ida</b> por dia · ${f.dest==="*"?"qualquer destino":esc(REG[f.dest]||apTxt(f.dest))} · ${CAB[f.cab].toLowerCase()}</div>
+    <div><button class="btn" id="cp">‹</button> <b style="text-transform:capitalize">${nm}</b> <button class="btn" id="cn">›</button></div></div><div class="cal">${cells}</div><p class="fa">Toque num dia para filtrar a ida por ele.</p>`;
+  const i=months.indexOf(m);
+  $("cp").onclick=()=>{box.dataset.m=months[Math.max(0,i-1)];renderCal();};
+  $("cn").onclick=()=>{box.dataset.m=months[Math.min(months.length-1,i+1)];renderCal();};
+  box.querySelectorAll("[data-d]").forEach(el=>el.onclick=()=>{$("fIdaDe").value=el.dataset.d;$("fIdaAte").value=el.dataset.d;shown=40;render();});
+}
+
+/* ===================== Imperdíveis ===================== */
+function impTable(list,past){
+  if(!list.length) return `<div class="empty">${past?"Ainda nada por aqui. As imperdíveis que esgotarem vão aparecendo nesta lista.":"Nenhuma imperdível agora. O robô confere de novo nas próximas horas."}</div>`;
+  return `<table class="mini"><tr><th>Rota</th><th>Data</th><th>Classe</th><th style="text-align:right">Milhas</th><th>Abaixo do normal</th>${past?"<th>Ficou disponível</th>":"<th></th>"}</tr>`+
+   list.map(a=>`<tr><td>${esc(apTxt(a.o))} → <b>${esc(apTxt(a.d))}</b><div class="fa">${progName(a.p)} · só ida</div></td><td>${dBR(a.dt)}</td><td>${CAB[a.cab]}</td>
+    <td style="text-align:right"><b>${fmtK(a.mi)}</b><div class="fa">normal ≈ ${fmtK(a.ref)}</div></td><td class="down">−${a.desc}%</td>
+    <td>${past?`<span class="fa">${a.visto_desde?dBR(a.visto_desde.slice(0,10)):""} → ${a.sumiu_em?dBR(a.sumiu_em.slice(0,10)):""}</span>`:
+      (LINKS[a.id]?`<a href="${esc(LINKS[a.id])}" target="_blank" rel="noopener">ir para a passagem ↗</a>`:real(a.id)?`<a href="https://seats.aero/i/${encodeURIComponent(a.id)}" target="_blank" rel="noopener">ver</a>`:`<a href="#" data-go="${a.d}">buscar</a>`)}</td></tr>`).join("")+`</table>`;
+}
+function renderImp(){
+  $("impAgora").innerHTML=impTable((IMP.agora||[]).slice(0,10),false);
+  $("impPassadas").innerHTML=impTable((IMP.passadas||[]).slice(0,15),true);
+  document.querySelectorAll("[data-go]").forEach(el=>el.onclick=e=>{e.preventDefault();$("fDest").value=el.dataset.go;render();$("results").scrollIntoView({behavior:"smooth"});});
+}
+
+/* ===================== Aprenda ===================== */
+function renderLearn(){
+  $("howto").innerHTML = ["smiles","azul"].map(p=>`<p><b>${PROG[p].n}</b> — <a href="${PROG[p].u}" target="_blank" rel="noopener">abrir site</a></p><ol>${PROG[p].how.map(s=>`<li>${s}</li>`).join("")}</ol>`).join("")+
+   `<p><b>Programas estrangeiros</b> (Aeroplan, Flying Blue, LifeMiles, United…)</p><ol><li>Crie a conta grátis no site do programa (link em cada passagem).</li><li>Espere uma promoção de compra (bônus de 80% a 150% é comum) e procure a página “Buy miles/points”.</li><li>Pague em dólar com cartão internacional (lembre do IOF).</li><li>Emita no próprio site do programa; as taxas também são cobradas em moeda estrangeira.</li></ol>`;
+  $("refTable").innerHTML=`<table class="mini"><tr><th>Programa</th><th style="text-align:right">Milheiro bom (≈ R$)</th></tr>`+
+    ["smiles","azul","aeroplan","flyingblue","lifemiles","jetblue","united","alaska","american","turkish","emirates"].map(p=>`<tr><td>${PROG[p].n}</td><td style="text-align:right">${brl(milheiro(p))}${PROG[p].usd?` <span class="fa">(${PROG[p].usd.toLocaleString("pt-BR")}¢ de dólar/milha)</span>`:""}</td></tr>`).join("")+`</table>`;
+  $("promoTable").innerHTML=`<table class="mini"><tr><th>Programa</th><th>Quando costuma ter promoção</th></tr>`+
+    Object.keys(PROG).filter(p=>!/esporádicas$/.test(PROG[p].promo)).map(p=>`<tr><td>${PROG[p].n}</td><td>${PROG[p].promo}</td></tr>`).join("")+`</table>`;
+  calc();
+}
+function calc(){
+  const mi=+$("cMi").value||0, tx=+$("cTx").value||0, ml=+$("cMil").value||0, din=+$("cDin").value||0;
+  const custo=mi/1000*ml+tx, vale=din>0?(din-tx)/mi*1000:0;
+  const ok=custo<din;
+  $("cRes").innerHTML=`Comprando as milhas, a passagem sai por <span class="big">${brl(custo)}</span> ${din?`contra ${brl(din)} em dinheiro → `+(ok?`<b class="down">vale a pena (economia de ${brl(din-custo)})</b>`:`<b style="color:var(--warn)">melhor pagar em dinheiro</b>`):""}
+   <br><span class="fa">Nessa passagem, cada milheiro “vale” ${brl(vale)}. Se você conseguir comprar milhas abaixo disso, compensa.</span>`;
+}
+
+/* ===================== Alertas ===================== */
+function renderAlert(){
+  const o={nome:$("aNome").value,destino:$("aDest").value,cabine:$("aCab").value,max_milhas:+$("aMax").value||0,ida_de:$("aDe").value,ida_ate:$("aAte").value};
+  $("aOut").textContent=JSON.stringify(o,null,2)+",";
+}
+
+load();
+</script>
+</body>
+</html>

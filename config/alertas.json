@@ -1,0 +1,15 @@
+{
+  "_leia": "Alertas opcionais pelo Telegram. Use a aba 'Alertas' do site para gerar cada alerta e cole dentro da lista abaixo. Lista vazia = sem alertas.",
+  "ativo": false,
+  "modo": "resumo",
+  "alertas": [
+    {
+      "nome": "Exemplo: Europa executiva barata",
+      "destino": "Europe",
+      "cabine": "J",
+      "max_milhas": 150000,
+      "ida_de": "2027-03-01",
+      "ida_ate": "2027-03-31"
+    }
+  ]
+}
