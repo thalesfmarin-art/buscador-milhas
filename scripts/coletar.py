@@ -380,6 +380,9 @@ def main():
     historico = ler_json(os.path.join(DATA, "historico.json"), {})
     historico = atualizar_historico(historico, ida + volta, hoje_str)
     achados = marcar_imperdiveis(ida + volta, historico, cfg.get("imperdivel_percentual_abaixo_da_media", 30))
+    # imperdíveis: só passagens saindo do Brasil (GRU/VCP), não as de volta
+    portas = set(cfg.get("aeroportos_internacionais", ["GRU", "VCP"]))
+    achados = [x for x in achados if x["o"] in portas]
 
     # imperdíveis: as atuais e as que sumiram (viram "passadas")
     imp = ler_json(os.path.join(DATA, "imperdiveis.json"), {"agora": [], "passadas": []})

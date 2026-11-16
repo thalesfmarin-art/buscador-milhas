@@ -164,7 +164,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
     </section>
 
     <section class="card">
-      <h2>🔥 Imperdíveis do momento <small>só ida, bem abaixo do preço normal</small></h2>
+      <h2>🔥 Imperdíveis do momento <small id="impSub">só ida, saindo de Guarulhos, bem abaixo do preço normal</small></h2>
       <div id="impAgora"></div>
     </section>
 
@@ -390,6 +390,7 @@ function bind(){
     ["buscar","aprenda","alertas"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.tab));});
   document.querySelectorAll("#fTipo button").forEach(bt=>bt.onclick=()=>{document.querySelectorAll("#fTipo button").forEach(x=>x.classList.toggle("on",x===bt));
     document.querySelectorAll(".sohIV").forEach(e=>e.classList.toggle("hide",bt.dataset.v!=="iv")); shown=40; render(); });
+  $("fOrig").addEventListener("input",()=>{ $("impSub").textContent=`só ida, saindo de ${{GRU:"Guarulhos",VCP:"Viracopos","*":"GRU ou VCP"}[$("fOrig").value]}, bem abaixo do preço normal`; renderImp(); });
   ["fOrig","fDest","fIdaDe","fIdaAte","fDurMin","fDurMax","fCab","fMax","fProg","fCia","fOrd","fDireto"]
     .forEach(id=>$(id).addEventListener("input",()=>{shown=40;render();if(!$("calBox").classList.contains("hide"))renderCal();}));
   $("btnMore").onclick=()=>{shown+=40;draw();};
@@ -530,8 +531,9 @@ function impTable(list,past){
       (LINKS[a.fr]||LINKS[a.id]?`<a href="${esc(LINKS[a.fr]||LINKS[a.id])}" target="_blank" rel="noopener">ir para a passagem ↗</a>`:real(a.id)?`<a href="${buscaUrl(a,a.cab)}" target="_blank" rel="noopener">ver</a>`:`<a href="#" data-go="${a.d}">buscar</a>`)}</td></tr>`).join("")+`</table>`;
 }
 function renderImp(){
-  $("impAgora").innerHTML=impTable((IMP.agora||[]).slice(0,10),false);
-  $("impPassadas").innerHTML=impTable((IMP.passadas||[]).slice(0,15),true);
+  const f=F(), saindo=a=>(a.o==="GRU"||a.o==="VCP")&&origOk(a.o,f);
+  $("impAgora").innerHTML=impTable((IMP.agora||[]).filter(saindo).slice(0,10),false);
+  $("impPassadas").innerHTML=impTable((IMP.passadas||[]).filter(saindo).slice(0,15),true);
   document.querySelectorAll("[data-go]").forEach(el=>el.onclick=e=>{e.preventDefault();$("fDest").value=el.dataset.go;render();$("results").scrollIntoView({behavior:"smooth"});});
 }
 
