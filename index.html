@@ -399,7 +399,12 @@ function legOk(r,f){
 }
 function matchDest(r,f){ return f.dest==="*" || r.d===f.dest || r.rd===f.dest; }
 
-function bestNac(list){ if(!list||!list.length) return null; return list.reduce((a,b)=>custoR(a.p,a.c.Y?.[0]||1e9,a.c.Y?.[1])<=custoR(b.p,b.c.Y?.[0]||1e9,b.c.Y?.[1])?a:b); }
+// escolhe o trecho nacional mais barato; trocar de aeroporto em SP "custa" R$ 150 a mais (transfer)
+function bestNac(list, porta, campo){
+  let best=null, bc=Infinity;
+  for(const r of list){ if(!r.c.Y) continue; const c=custoR(r.p,r.c.Y[0],r.c.Y[1])+(r[campo]===porta?0:150); if(c<bc){bc=c;best=r;} }
+  return best;
+}
 const hm = t => t ? (+t.slice(0,2))*60 + (+t.slice(3,5)) : null;
 function cedo(nac, intl, cab){ // chega em SP pelo menos 4h antes do voo internacional?
   const ch=nac.f&&nac.f.Y?hm(nac.f.Y[2]):null, sai=intl.f&&(intl.f[cab]||intl.f.Y)?hm((intl.f[cab]||intl.f.Y)[1]):null;
@@ -410,13 +415,12 @@ function tarde(nac, intl, cab){ // sai de SP pelo menos 3h depois de chegar do e
   return sai==null||ch==null ? false : ch+180<=sai;
 }
 function nacIda(intl,cab){ // Rio Preto -> SP no dia anterior, ou no mesmo dia chegando 4h antes
-  const same=(D.nacIda[intl.dt]||[]).filter(r=>r.c.Y&&cedo(r,intl,cab)), prev=(D.nacIda[addD(intl.dt,-1)]||[]).filter(r=>r.c.Y);
-  const pref=same.filter(r=>r.d===intl.o), prefP=prev.filter(r=>r.d===intl.o);
-  return bestNac(prefP)||bestNac(pref)||bestNac(prev)||bestNac(same);
+  const c=[...(D.nacIda[addD(intl.dt,-1)]||[]), ...(D.nacIda[intl.dt]||[]).filter(r=>cedo(r,intl,cab))];
+  return bestNac(c, intl.o, "d");
 }
 function nacVolta(intl,cab){ // SP -> Rio Preto no mesmo dia (3h depois) ou no dia seguinte
-  const same=(D.nacVolta[intl.dt]||[]).filter(r=>r.c.Y&&tarde(r,intl,cab)), next=(D.nacVolta[addD(intl.dt,1)]||[]).filter(r=>r.c.Y);
-  return bestNac(next.filter(r=>r.o===intl.d))||bestNac(same.filter(r=>r.o===intl.d))||bestNac(next)||bestNac(same);
+  const c=[...(D.nacVolta[intl.dt]||[]).filter(r=>tarde(r,intl,cab)), ...(D.nacVolta[addD(intl.dt,1)]||[])];
+  return bestNac(c, intl.d, "o");
 }
 
 function search(){
