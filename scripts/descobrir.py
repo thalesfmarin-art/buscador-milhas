@@ -1,5 +1,5 @@
-"""Teste: lista as ferramentas da busca pública do Seats.aero e faz 1 busca de exemplo.
-Salva tudo em data/_descoberta.json para conferência."""
+"""Teste: limites da busca pública do Seats.aero e 2 buscas de exemplo.
+Salva em data/_descoberta.json para conferência."""
 import json
 import os
 import sys
@@ -11,22 +11,14 @@ from mcp import MCP
 saida = {}
 m = MCP()
 try:
-    saida["init"] = m.iniciar()
-    tools = m.ferramentas()
-    saida["tools"] = tools
-    nomes = [t["name"] for t in tools]
-    alvo = next((n for n in nomes if "search" in n.lower()), None)
-    if alvo:
-        hoje = date.today()
-        args = {"origin_airport": "GRU", "destination_airport": "LIS",
-                "start_date": (hoje + timedelta(days=7)).isoformat(),
-                "end_date": (hoje + timedelta(days=50)).isoformat()}
-        schema = next(t for t in tools if t["name"] == alvo).get("inputSchema", {})
-        props = schema.get("properties", {})
-        args = {k: v for k, v in args.items() if k in props} or args
-        r = m.usar(alvo, args)
-        saida["exemplo_args"] = {"tool": alvo, "args": args}
-        saida["exemplo"] = json.dumps(r, ensure_ascii=False)[:20000]
+    m.iniciar()
+    saida["capabilities"] = m.usar("get_capabilities", {})
+    hoje = date.today()
+    base = {"start_date": (hoje + timedelta(days=1)).isoformat(),
+            "end_date": (hoje + timedelta(days=59)).isoformat(), "max_results": 50, "max_stops": 2}
+    saida["ida"] = m.usar("get_flights", {**base, "origins": ["GRU", "VCP"],
+                                          "destinations": ["LIS", "MIA", "SCL", "MAD", "EZE", "CDG"]})
+    saida["nacional"] = m.usar("get_flights", {**base, "origins": ["SJP"], "destinations": ["GRU", "VCP", "CGH"]})
 except Exception as e:
     saida["erro"] = repr(e)
 
