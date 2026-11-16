@@ -92,6 +92,7 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:
 .kind{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:2px;background:var(--accent-soft);color:var(--accent)}
 .kind.i{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
 .go{display:inline-block;margin-top:4px}
+select.ord{width:auto;padding:6px 8px;font-size:13px}
 footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 </style>
 </head>
@@ -138,8 +139,6 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
           <div><label>Máximo de milhas</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
           <div><label>Programa</label><select id="fProg"><option value="">Todos</option></select></div>
           <div><label>Companhia aérea</label><select id="fCia"><option value="">Todas</option></select></div>
-          <div><label>Ordenar por</label><select id="fOrd">
-            <option value="milhas">Menos milhas</option><option value="custo">Menor custo estimado (R$)</option><option value="data">Data</option></select></div>
           <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fDireto">Só voo direto</label></div>
         </div>
       </details>
@@ -148,7 +147,16 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
     <section class="card">
       <div class="toolbar">
         <h2 style="margin:0">Passagens <small id="count"></small></h2>
-        <button class="btn" id="btnCal">📅 calendário</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <select id="fOrd" class="ord" title="Ordenar">
+            <option value="mi_asc">Mais barato primeiro</option>
+            <option value="mi_desc">Mais caro primeiro</option>
+            <option value="custo_asc">Menor custo em R$</option>
+            <option value="custo_desc">Maior custo em R$</option>
+            <option value="data">Data mais próxima</option>
+          </select>
+          <button class="btn" id="btnCal">📅 calendário</button>
+        </div>
       </div>
       <div id="calBox" class="hide"></div>
       <div id="results"></div>
@@ -432,14 +440,14 @@ function search(){
     out.push({a,b:best,mi,tx,custo:custoR(a.p,va[0],va[1])+bestC,n:days(a.dt,best.dt)});
   }
   // 1 resultado por destino+data de ida (o melhor)
-  const key = f.ord==="custo" ? "custo" : "mi";
+  const key = f.ord.startsWith("custo") ? "custo" : "mi", desc = f.ord.endsWith("desc");
   // destino específico: todas as datas. "Qualquer lugar"/região: só a melhor data de cada destino.
   const porCidade = !(f.dest!=="*" && AP_DEST.has(f.dest));
   const seen=new Map(), cont={};
   for(const r of out){ const k=r.a.o+r.a.d+(porCidade?"":r.a.dt); cont[r.a.o+r.a.d]=(cont[r.a.o+r.a.d]||0)+1;
-    const o=seen.get(k); if(!o||r[key]<o[key]) seen.set(k,r); }
+    const o=seen.get(k); if(!o||r[key]<o[key]) seen.set(k,r); }   // dentro de um destino guarda sempre a opção mais barata
   const list=[...seen.values()]; if(porCidade) list.forEach(r=>r.n_datas=cont[r.a.o+r.a.d]);
-  list.sort(f.ord==="data"?(x,y)=>x.a.dt.localeCompare(y.a.dt):(x,y)=>x[key]-y[key]);
+  list.sort(f.ord==="data"?(x,y)=>x.a.dt.localeCompare(y.a.dt):desc?(x,y)=>y[key]-x[key]:(x,y)=>x[key]-y[key]);
   return list;
 }
 
