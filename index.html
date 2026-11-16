@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Buscador de Milhas · Rio Preto → Mundo</title>
+<title>Buscador de Milhas</title>
 <style>
 :root{
   --bg:#f6f7f9; --card:#fff; --ink:#1c2430; --muted:#6b7684; --faint:#9aa4b0; --line:#e4e8ee;
@@ -83,6 +83,15 @@ table.mini tr:last-child td{border-bottom:0}
 .big{font-size:22px;font-weight:700}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px}
 .hide{display:none!important}
+.search{padding:18px}
+.g3{grid-template-columns:1fr 1.3fr 1fr}
+@media (max-width:640px){.g3{grid-template-columns:1fr}}
+.seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--card);color:var(--muted);padding:8px 6px;font:inherit;font-size:14px;cursor:pointer}
+.seg button.on{background:var(--accent);color:#fff;font-weight:600}
+.kind{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:2px;background:var(--accent-soft);color:var(--accent)}
+.kind.i{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.go{display:inline-block;margin-top:4px}
 footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 </style>
 </head>
@@ -92,7 +101,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
     <div class="top">
       <div>
         <h1>✈️ Buscador de Milhas</h1>
-        <div class="sub">Rio Preto → mundo, ida e volta · <span id="upd">carregando…</span></div>
+        <div class="sub">Passagens internacionais com milhas · <span id="upd">carregando…</span></div>
       </div>
     </div>
     <nav>
@@ -108,49 +117,47 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 
   <!-- ============ BUSCAR ============ -->
   <div id="tab-buscar">
-    <section class="card">
-      <h2>🔥 Imperdíveis do momento <small>bem abaixo do preço normal</small></h2>
-      <div id="impAgora"></div>
-    </section>
-
-    <section class="card">
-      <h2>Filtros</h2>
-      <div class="grid">
-        <div><label>Destino</label><select id="fDest"></select></div>
-        <div><label>Ida a partir de</label><input type="date" id="fIdaDe"></div>
-        <div><label>Ida até</label><input type="date" id="fIdaAte"></div>
-        <div><label>Duração (dias)</label>
-          <div style="display:flex;gap:6px"><input type="number" id="fDurMin" min="1" value="5" title="mínimo"><input type="number" id="fDurMax" min="1" value="20" title="máximo"></div></div>
-        <div><label>Classe</label><select id="fCab">
-          <option value="Y">Econômica</option><option value="W">Premium economy</option>
-          <option value="J">Executiva</option><option value="F">Primeira</option></select></div>
-        <div><label>Máximo de milhas (ida+volta)</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
+    <section class="card search">
+      <div class="grid g3">
+        <div><label>Saindo de</label><select id="fOrig">
+          <option value="GRU" selected>Guarulhos (GRU)</option><option value="VCP">Viracopos (VCP)</option><option value="*">GRU ou VCP</option></select></div>
+        <div><label>Para onde <span class="fa">(opcional)</span></label><select id="fDest"></select></div>
+        <div><label>Tipo</label><div class="seg" id="fTipo">
+          <button data-v="iv" class="on">Ida e volta</button><button data-v="i">Só ida</button></div></div>
       </div>
       <details class="more">
         <summary>mais filtros</summary>
         <div class="grid">
-          <div><label>Volta a partir de</label><input type="date" id="fVoltaDe"></div>
-          <div><label>Volta até</label><input type="date" id="fVoltaAte"></div>
+          <div><label>Classe</label><select id="fCab">
+            <option value="Y">Econômica</option><option value="W">Premium economy</option>
+            <option value="J">Executiva</option><option value="F">Primeira</option></select></div>
+          <div><label>Ida a partir de</label><input type="date" id="fIdaDe"></div>
+          <div><label>Ida até</label><input type="date" id="fIdaAte"></div>
+          <div class="sohIV"><label>Duração (dias)</label>
+            <div style="display:flex;gap:6px"><input type="number" id="fDurMin" min="1" value="5" title="mínimo"><input type="number" id="fDurMax" min="1" value="20" title="máximo"></div></div>
+          <div><label>Máximo de milhas</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
           <div><label>Programa</label><select id="fProg"><option value="">Todos</option></select></div>
           <div><label>Companhia aérea</label><select id="fCia"><option value="">Todas</option></select></div>
-          <div><label>Sair por</label><select id="fPorta"><option value="">GRU ou VCP</option><option>GRU</option><option>VCP</option></select></div>
-          <div><label>Assentos (mínimo)</label><input type="number" id="fAss" min="1" value="1"></div>
           <div><label>Ordenar por</label><select id="fOrd">
-            <option value="custo">Menor custo estimado (R$)</option><option value="milhas">Menos milhas</option><option value="data">Data</option></select></div>
+            <option value="milhas">Menos milhas</option><option value="custo">Menor custo estimado (R$)</option><option value="data">Data</option></select></div>
           <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fDireto">Só voo direto</label></div>
-          <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fJaw">Voltar de outra cidade</label></div>
         </div>
       </details>
     </section>
 
     <section class="card">
       <div class="toolbar">
-        <h2 style="margin:0">Viagens disponíveis <small id="count"></small></h2>
-        <button class="btn" id="btnCal" title="Escolha um destino específico para ver o calendário">📅 ver calendário</button>
+        <h2 style="margin:0">Passagens <small id="count"></small></h2>
+        <button class="btn" id="btnCal">📅 calendário</button>
       </div>
       <div id="calBox" class="hide"></div>
       <div id="results"></div>
       <div style="text-align:center"><button class="btn hide" id="btnMore">mostrar mais</button></div>
+    </section>
+
+    <section class="card">
+      <h2>🔥 Imperdíveis do momento <small>só ida, bem abaixo do preço normal</small></h2>
+      <div id="impAgora"></div>
     </section>
 
     <section class="card">
@@ -182,7 +189,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
         <li>No buscador, abra a viagem e clique em <b>“ir para a passagem”</b>: abre a página daquele voo exato (companhia, origem, destino, data e horário) com o link de emissão no programa. Se o botão não aparecer, o link “Seats.aero” abre a busca já filtrada nessa rota, data e programa.</li>
         <li>Faça login e confira se a tarifa ainda está lá (às vezes só aparece buscando trecho só de ida).</li>
         <li>Confira milhas + taxas, os nomes exatamente como no passaporte e emita.</li>
-        <li><b>Bilhetes separados:</b> se o trecho Rio Preto–São Paulo for outro bilhete, deixe folga grande ou chegue no dia anterior.</li>
+        <li><b>Saindo do interior:</b> o trecho até Guarulhos é um bilhete separado; deixe folga grande ou chegue no dia anterior.</li>
       </ol>
       <p class="mu">Dica: só compre milhas <b>depois</b> de achar a passagem, e de preferência com a tarifa ainda aparecendo. A disponibilidade pode sumir.</p>
     </section>
@@ -354,8 +361,6 @@ async function load(){
   // índices
   D.byOrig={}; for(const r of D.volta)(D.byOrig[r.o]=D.byOrig[r.o]||[]).push(r);
   D.byReg={};  for(const r of D.volta)(D.byReg[r.ro]=D.byReg[r.ro]||[]).push(r);
-  D.nacIda={}; D.nacVolta={};
-  for(const r of D.nacional){ if(r.o==="SJP")(D.nacIda[r.dt]=D.nacIda[r.dt]||[]).push(r); else (D.nacVolta[r.dt]=D.nacVolta[r.dt]||[]).push(r); }
   buildOptions(); bind(); render(); renderImp(); renderLearn(); renderAlert();
 }
 
@@ -375,7 +380,9 @@ function bind(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
     ["buscar","aprenda","alertas"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.tab));});
-  ["fDest","fIdaDe","fIdaAte","fDurMin","fDurMax","fCab","fMax","fVoltaDe","fVoltaAte","fProg","fCia","fPorta","fAss","fOrd","fDireto","fJaw"]
+  document.querySelectorAll("#fTipo button").forEach(bt=>bt.onclick=()=>{document.querySelectorAll("#fTipo button").forEach(x=>x.classList.toggle("on",x===bt));
+    document.querySelectorAll(".sohIV").forEach(e=>e.classList.toggle("hide",bt.dataset.v!=="iv")); shown=40; render(); });
+  ["fOrig","fDest","fIdaDe","fIdaAte","fDurMin","fDurMax","fCab","fMax","fProg","fCia","fOrd","fDireto"]
     .forEach(id=>$(id).addEventListener("input",()=>{shown=40;render();if(!$("calBox").classList.contains("hide"))renderCal();}));
   $("btnMore").onclick=()=>{shown+=40;draw();};
   $("btnCal").onclick=()=>{ $("calBox").classList.toggle("hide"); renderCal(); };
@@ -385,122 +392,99 @@ function bind(){
 }
 
 /* ===================== Busca: monta ida+volta ===================== */
-function F(){ return {dest:$("fDest").value, idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, dmin:+$("fDurMin").value||1, dmax:+$("fDurMax").value||60,
-  cab:$("fCab").value, max:+$("fMax").value||Infinity, vDe:$("fVoltaDe").value, vAte:$("fVoltaAte").value, prog:$("fProg").value, cia:$("fCia").value,
-  porta:$("fPorta").value, ass:+$("fAss").value||1, ord:$("fOrd").value, dir:$("fDireto").checked, jaw:$("fJaw").checked}; }
+function F(){ return {orig:$("fOrig").value, dest:$("fDest").value, tipo:document.querySelector("#fTipo .on").dataset.v,
+  idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, dmin:+$("fDurMin").value||1, dmax:+$("fDurMax").value||60,
+  cab:$("fCab").value, max:+$("fMax").value||Infinity, prog:$("fProg").value, cia:$("fCia").value, ord:$("fOrd").value, dir:$("fDireto").checked}; }
+const origOk = (code,f) => f.orig==="*" || code===f.orig;
 
 function legOk(r,f){
   const v=r.c[f.cab]; if(!v) return false;
   if(f.prog && r.p!==f.prog) return false;
   if(f.cia && !(v[4]||"").split(",").map(s=>s.trim()).includes(f.cia)) return false;
   if(f.dir && !v[3]) return false;
-  if((v[2]||0) < f.ass) return false;
   return true;
 }
 function matchDest(r,f){ return f.dest==="*" || r.d===f.dest || r.rd===f.dest; }
 
-// escolhe o trecho nacional mais barato; trocar de aeroporto em SP "custa" R$ 150 a mais (transfer)
-function bestNac(list, porta, campo){
-  let best=null, bc=Infinity;
-  for(const r of list){ if(!r.c.Y) continue; const c=custoR(r.p,r.c.Y[0],r.c.Y[1])+(r[campo]===porta?0:150); if(c<bc){bc=c;best=r;} }
-  return best;
-}
-const hm = t => t ? (+t.slice(0,2))*60 + (+t.slice(3,5)) : null;
-function cedo(nac, intl, cab){ // chega em SP pelo menos 4h antes do voo internacional?
-  const ch=nac.f&&nac.f.Y?hm(nac.f.Y[2]):null, sai=intl.f&&(intl.f[cab]||intl.f.Y)?hm((intl.f[cab]||intl.f.Y)[1]):null;
-  return ch==null||sai==null ? false : ch+240<=sai;
-}
-function tarde(nac, intl, cab){ // sai de SP pelo menos 3h depois de chegar do exterior?
-  const sai=nac.f&&nac.f.Y?hm(nac.f.Y[1]):null, ch=intl.f&&(intl.f[cab]||intl.f.Y)?hm((intl.f[cab]||intl.f.Y)[2]):null;
-  return sai==null||ch==null ? false : ch+180<=sai;
-}
-function nacIda(intl,cab){ // Rio Preto -> SP no dia anterior, ou no mesmo dia chegando 4h antes
-  const c=[...(D.nacIda[addD(intl.dt,-1)]||[]), ...(D.nacIda[intl.dt]||[]).filter(r=>cedo(r,intl,cab))];
-  return bestNac(c, intl.o, "d");
-}
-function nacVolta(intl,cab){ // SP -> Rio Preto no mesmo dia (3h depois) ou no dia seguinte
-  const c=[...(D.nacVolta[intl.dt]||[]).filter(r=>tarde(r,intl,cab)), ...(D.nacVolta[addD(intl.dt,1)]||[])];
-  return bestNac(c, intl.d, "o");
-}
 
+let AP_DEST=new Set();
 function search(){
+  if(!AP_DEST.size) D.ida.forEach(r=>AP_DEST.add(r.d));
   const f=F(); const out=[];
   for(const a of D.ida){
-    if(f.porta && a.o!==f.porta) continue;
-    if(!matchDest(a,f) || !legOk(a,f)) continue;
+    if(!origOk(a.o,f) || !matchDest(a,f) || !legOk(a,f)) continue;
     if(f.idaDe && a.dt<f.idaDe) continue; if(f.idaAte && a.dt>f.idaAte) continue;
-    const cands = f.jaw ? (D.byReg[a.rd]||[]) : (D.byOrig[a.d]||[]);
+    const va=a.c[f.cab];
+    if(f.tipo==="i"){ // só ida
+      if(va[0]>f.max) continue;
+      out.push({a,b:null,mi:va[0],tx:va[1],custo:custoR(a.p,va[0],va[1])}); continue;
+    }
     let best=null, bestC=Infinity;
-    for(const b of cands){
+    for(const b of (D.byOrig[a.d]||[])){
+      if(b.d!==a.o && f.orig!=="*") continue;           // volta para o mesmo aeroporto
       const n=days(a.dt,b.dt); if(n<f.dmin||n>f.dmax) continue;
-      if(f.vDe && b.dt<f.vDe) continue; if(f.vAte && b.dt>f.vAte) continue;
       if(!legOk(b,f)) continue;
       const c=custoR(b.p,b.c[f.cab][0],b.c[f.cab][1]); if(c<bestC){bestC=c;best=b;}
     }
     if(!best) continue;
-    const va=a.c[f.cab], vb=best.c[f.cab];
-    const mi=va[0]+vb[0]; if(mi>f.max) continue;
+    const vb=best.c[f.cab]; const mi=va[0]+vb[0]; if(mi>f.max) continue;
     const tx=(va[1]==null||vb[1]==null)?null:va[1]+vb[1];
     out.push({a,b:best,mi,tx,custo:custoR(a.p,va[0],va[1])+bestC,n:days(a.dt,best.dt)});
   }
-  // 1 resultado por destino+data de ida (o mais barato)
-  const seen=new Map(); for(const r of out){const k=r.a.d+r.a.dt; const o=seen.get(k); if(!o||r.custo<o.custo) seen.set(k,r);}
-  const list=[...seen.values()];
-  list.sort(f.ord==="milhas"?(x,y)=>x.mi-y.mi:f.ord==="data"?(x,y)=>x.a.dt.localeCompare(y.a.dt):(x,y)=>x.custo-y.custo);
+  // 1 resultado por destino+data de ida (o melhor)
+  const key = f.ord==="custo" ? "custo" : "mi";
+  // destino específico: todas as datas. "Qualquer lugar"/região: só a melhor data de cada destino.
+  const porCidade = !(f.dest!=="*" && AP_DEST.has(f.dest));
+  const seen=new Map(), cont={};
+  for(const r of out){ const k=r.a.o+r.a.d+(porCidade?"":r.a.dt); cont[r.a.o+r.a.d]=(cont[r.a.o+r.a.d]||0)+1;
+    const o=seen.get(k); if(!o||r[key]<o[key]) seen.set(k,r); }
+  const list=[...seen.values()]; if(porCidade) list.forEach(r=>r.n_datas=cont[r.a.o+r.a.d]);
+  list.sort(f.ord==="data"?(x,y)=>x.a.dt.localeCompare(y.a.dt):(x,y)=>x[key]-y[key]);
   return list;
 }
 
 function render(){ lastList=search(); draw(); }
 function draw(){
   const f=F(), L=lastList;
-  $("count").textContent = L.length ? `${fmt(L.length)} opções · ${CAB[f.cab].toLowerCase()}` : "";
-  if(!L.length){ $("results").innerHTML=`<div class="empty">Nenhuma viagem com esses filtros. Tente aumentar a duração, o período ou o máximo de milhas.</div>`; $("btnMore").classList.add("hide"); return; }
+  $("count").textContent = L.length ? `${fmt(L.length)} · ${f.tipo==="i"?"só ida":"ida e volta"} · ${CAB[f.cab].toLowerCase()}` : "";
+  if(!L.length){ $("results").innerHTML=`<div class="empty">Nada encontrado. ${f.tipo==="iv"?"Tente “Só ida”, ou mude a duração em mais filtros.":"Tente outro destino ou classe."}</div>`; $("btnMore").classList.add("hide"); return; }
   $("results").innerHTML = L.slice(0,shown).map((r,i)=>card(r,f,i)).join("");
+  $("results").querySelectorAll("[data-dest]").forEach(el=>el.onclick=e=>{e.preventDefault();$("fDest").value=el.dataset.dest;shown=40;render();$("results").scrollIntoView({behavior:"smooth"});});
   $("btnMore").classList.toggle("hide", L.length<=shown);
 }
 
-function legRow(r,cab,label,nac){
+function legRow(r,cab,label){
   const v=r.c[cab]||r.c.Y; const saver=(r.s||[]).includes(cab);
   const dur=v[5]?` · ${Math.floor(v[5]/60)}h${String(v[5]%60).padStart(2,"0")}`:"";
   const fx=r.f&&(r.f[cab]||r.f.Y); const hora=fx&&fx[1]?` · ${fx[1]}–${fx[2]}`:""; const voo=fx&&fx[3]?` · voo ${esc(fx[3])}`:"";
   const paradas=fx&&fx[4]>0?` · ${fx[4]} parada(s)`:"";
-  return `<div class="leg"><div class="dot ${nac?"n":""}"></div>
+  return `<div class="leg"><div class="dot"></div>
    <div><div><b>${label}</b> · ${dBR(r.dt)}${hora} · ${ap(r.o)} → ${ap(r.d)}</div>
    <div class="fa">${progName(r.p)}${v[4]?` · ${esc(v[4])}`:""}${voo}${v[3]?" · direto":paradas}${dur}${v[2]?` · ${v[2]} assento(s)`:""} · visto ${ago(r.u)}</div></div>
    <div style="text-align:right"><b>${fmtK(v[0])}</b>${saver?'<span class="tag g" title="No menor patamar já visto para essa rota">saver</span>':""}<div class="fa">${v[1]==null?"taxas a conferir":"+ "+brl(v[1])+" taxas"}</div>
    <div class="fa">${linksHtml(r,r.c[cab]?cab:"Y")}</div></div></div>`;
 }
-function nacMissing(label,o,d,dt){
-  return `<div class="leg"><div class="dot n"></div><div><div><b>${label}</b> · ${dBR(dt)} · ${ap(o)} → ${ap(d)}</div>
-   <div class="fa">Sem dado de milhas para esse trecho. Confira direto na Azul (voa Rio Preto–Viracopos) ou na Smiles/LATAM.</div></div>
-   <div style="text-align:right" class="fa"><a href="${PROG.azul.u}" target="_blank" rel="noopener">Azul</a> · <a href="${PROG.smiles.u}" target="_blank" rel="noopener">Smiles</a></div></div>`;
-}
 
 function card(r,f,i){
-  const {a,b}=r; const ni=nacIda(a,f.cab), nv=nacVolta(b,f.cab);
+  const {a,b}=r, iv=!!b;
   const notes=[];
-  if(ni && ni.d!==a.o) notes.push(`Troca de aeroporto na ida: você chega em <b>${apTxt(ni.d)}</b> e o voo internacional sai de <b>${apTxt(a.o)}</b>. Conte 1h30–2h de transfer (ônibus do aeroporto ou app) e muita folga.`);
-  if(nv && nv.o!==b.d) notes.push(`Troca de aeroporto na volta: chega em <b>${apTxt(b.d)}</b> e o voo para Rio Preto sai de <b>${apTxt(nv.o)}</b>.`);
-  if(ni && ni.dt===a.dt) notes.push(`Ida para São Paulo no mesmo dia do voo internacional (chegando com 4h+ de folga). Como são bilhetes separados, um atraso não garante remarcação: se der, prefira ir no dia anterior.`);
-  if(a.o!==b.d) notes.push(`A volta chega em ${apTxt(b.d)}, diferente do aeroporto de saída (${apTxt(a.o)}).`);
-  if(a.d!==b.o) notes.push(`Volta saindo de outra cidade: ${apTxt(b.o)}.`);
-  const nacMi=(ni?.c.Y?.[0]||0)+(nv?.c.Y?.[0]||0);
-  const progs=[...new Set([a.p,b.p,ni?.p,nv?.p].filter(Boolean))];
-  const est = r.custo + (ni?custoR(ni.p,ni.c.Y[0],ni.c.Y[1]):0) + (nv?custoR(nv.p,nv.c.Y[0],nv.c.Y[1]):0);
+  if(iv && a.o!==b.d) notes.push(`A volta chega em ${apTxt(b.d)}, diferente do aeroporto de saída (${apTxt(a.o)}).`);
+  const progs=[...new Set([a.p,b?.p].filter(Boolean))];
+  const um = !iv || a.p===b.p;
   return `<details class="res">
    <summary>
-     <div><div class="route">Rio Preto → ${esc(apTxt(a.d))}</div><div class="fa">${REG[a.rd]||a.rd||""} · sai por ${a.o}${a.p!==b.p?" · 2 programas":""}</div></div>
-     <div class="dates mid">${dShort(a.dt)} → ${dShort(b.dt)} <span class="mu">· ${r.n} dias</span></div>
-     <div class="miles">${fmtK(r.mi)} <small>${r.tx==null?"taxas a conferir":"+ "+brl(r.tx)+" taxas"} · ≈ ${brl(est)}</small></div>
+     <div><div class="route">${esc(a.o)} → ${esc(apTxt(a.d))}<span class="kind ${iv?"":"i"}">${iv?"ida e volta":"só ida"}</span></div>
+       <div class="fa">${um?progName(a.p):"2 programas"} · ${CAB[f.cab].toLowerCase()}${r.n_datas>1?` · melhor de ${r.n_datas} datas`:""}</div></div>
+     <div class="dates mid">${iv?`${dShort(a.dt)} → ${dShort(b.dt)} <span class="mu">· ${r.n} dias</span>`:dBR(a.dt)}</div>
+     <div class="miles">${fmtK(r.mi)} <small>milhas ${r.tx==null?"· taxas a conferir":"+ "+brl(r.tx)}</small></div>
      <div class="chev">›</div>
    </summary>
    <div class="legs">
-     ${ni?legRow(ni,"Y","Ida · nacional",1):nacMissing("Ida · nacional","SJP",a.o,addD(a.dt,-1))}
-     ${legRow(a,f.cab,"Ida · internacional")}
-     ${legRow(b,f.cab,"Volta · internacional")}
-     ${nv?legRow(nv,"Y","Volta · nacional",1):nacMissing("Volta · nacional",b.d,"SJP",b.dt)}
+     ${legRow(a,f.cab,"Ida")}
+     ${iv?legRow(b,f.cab,"Volta"):""}
      ${notes.map(n=>`<div class="note">${n}</div>`).join("")}
-     <div class="fa" style="margin-top:6px">Total com trechos nacionais: <b>${fmtK(r.mi+nacMi)}</b> milhas. Custo estimado ≈ ${brl(est)} comprando as milhas a um milheiro bom de promoção.</div>
+     ${r.n_datas>1?`<div style="margin:8px 0 2px"><a href="#" data-dest="${esc(a.d)}">ver todas as ${r.n_datas} opções de datas para ${esc(apTxt(a.d))} →</a></div>`:""}
+     <div class="fa" style="margin-top:6px">${iv?"Total ida e volta":"Total só ida"}: <b>${fmtK(r.mi)} milhas</b>${r.tx!=null?` + ${brl(r.tx)} de taxas`:""}. Comprando as milhas num milheiro bom de promoção, sai por ≈ <b>${brl(r.custo)}</b>.</div>
      <div class="info">${progs.map(p=>{const x=PROG[p]||{};return `<div><b>${progName(p)}</b>📅 ${x.promo||"Promoções esporádicas"}<br>💳 ${x.t||""}<br>↩️ ${CANCEL}</div>`;}).join("")}</div>
    </div></details>`;
 }
@@ -509,7 +493,7 @@ function card(r,f,i){
 function renderCal(){
   const f=F(), box=$("calBox");
   if(box.classList.contains("hide")) return;
-  const legs=D.ida.filter(r=>matchDest(r,f)&&legOk(r,f)&&(!f.porta||r.o===f.porta));
+  const legs=D.ida.filter(r=>matchDest(r,f)&&legOk(r,f)&&origOk(r.o,f));
   const min={}; for(const r of legs){const v=r.c[f.cab][0]; if(!min[r.dt]||v<min[r.dt])min[r.dt]=v;}
   const dts=Object.keys(min).sort(); if(!dts.length){box.innerHTML=`<div class="empty">Sem datas para esse destino/classe.</div>`;return;}
   const months=[...new Set(dts.map(d=>d.slice(0,7)))];
