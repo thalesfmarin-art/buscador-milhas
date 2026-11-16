@@ -1,10 +1,23 @@
 {
   "_leia": "Configurações do robô. Pode editar direto no GitHub.",
   "cidade_origem": "SJP",
-  "aeroportos_internacionais": ["GRU", "VCP"],
-  "aeroportos_conexao_sp": ["GRU", "VCP", "CGH"],
+  "aeroportos_internacionais": [
+    "GRU",
+    "VCP"
+  ],
+  "aeroportos_conexao_sp": [
+    "GRU",
+    "VCP",
+    "CGH"
+  ],
   "dias_a_frente": 330,
   "max_chamadas_por_rodada": 450,
   "links_diretos_por_rodada": 150,
-  "imperdivel_percentual_abaixo_da_media": 30
+  "imperdivel_percentual_abaixo_da_media": 30,
+  "max_consultas_gratis": 300,
+  "links_gratis_por_rodada": 60,
+  "cabines_gratis": [
+    "economy",
+    "business"
+  ]
 }

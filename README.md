@@ -9,7 +9,16 @@ Site que mostra passagens internacionais com milhas, ida e volta, saindo de Rio 
 - `config/alertas.json`: alertas do Telegram (opcional)
 - `data/`: resultados gerados pelo robô (não editar)
 
-## Configuração (uma vez só)
+## Modo grátis (padrão)
+
+Sem nenhuma configuração, o robô usa a **busca pública e gratuita do Seats.aero**: voos dos próximos **60 dias**, até 1.000 consultas por dia. Cada rodada faz ~300 consultas (`max_consultas_gratis`).
+O botão "ir para a passagem" abre a página do Seats.aero daquele voo com as instruções de emissão.
+
+## Modo Pro (opcional, pago)
+
+Se um dia quiser ver o ano inteiro, assine o Seats.aero Pro e siga os passos abaixo; o robô troca de modo sozinho quando encontra a chave.
+
+### Configuração do Pro
 
 1. **Seats.aero Pro**: assine em seats.aero e gere a chave em *Settings → API*.
 2. **Chave no GitHub**: no repositório, *Settings → Secrets and variables → Actions → New repository secret*.

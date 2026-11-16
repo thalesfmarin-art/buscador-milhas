@@ -179,7 +179,7 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 
       <h3>4. Para emitir a passagem</h3>
       <ol>
-        <li>No buscador, abra a viagem e clique em <b>“ir para a passagem”</b>: abre o site do programa já com companhia, origem, destino e data. (Se o botão não aparecer, use o link do Seats.aero ou do site do programa.)</li>
+        <li>No buscador, abra a viagem e clique em <b>“ir para a passagem”</b>: abre a página daquele voo exato (companhia, origem, destino, data e horário) com o link de emissão no programa. Se o botão não aparecer, o link “Seats.aero” abre a busca já filtrada nessa rota, data e programa.</li>
         <li>Faça login e confira se a tarifa ainda está lá (às vezes só aparece buscando trecho só de ida).</li>
         <li>Confira milhas + taxas, os nomes exatamente como no passaporte e emita.</li>
         <li><b>Bilhetes separados:</b> se o trecho Rio Preto–São Paulo for outro bilhete, deixe folga grande ou chegue no dia anterior.</li>
@@ -331,9 +331,12 @@ function demoData(){
 let D, IMP, LINKS={}, shown=40, lastList=[];
 const real = id => id && !String(id).startsWith("demo");
 // Botões de emissão: link direto (quando o robô já buscou) > página no Seats.aero > site do programa
-function linksHtml(r){
-  const direto = LINKS[r.id];
-  const seats = real(r.id) ? `<a href="https://seats.aero/i/${encodeURIComponent(r.id)}" target="_blank" rel="noopener">Seats.aero</a>` : "";
+const CABEN={Y:"economy",W:"premium",J:"business",F:"first"};
+function buscaUrl(r,cab){ return "https://seats.aero/search?"+new URLSearchParams({date:r.dt,origins:r.o,destinations:r.d,sources:r.p,applicable_cabin:CABEN[cab]||"economy",min_seats:1,stops:2}); }
+const refDe = (r,cab) => (r.f&&r.f[cab]&&r.f[cab][0]) || r.id;
+function linksHtml(r,cab){
+  const direto = LINKS[refDe(r,cab)] || LINKS[r.id];
+  const seats = real(r.id) ? `<a href="${buscaUrl(r,cab)}" target="_blank" rel="noopener">Seats.aero</a>` : "";
   const site = `<a href="${(PROG[r.p]||{}).u||"#"}" target="_blank" rel="noopener">site do programa</a>`;
   if(direto) return `<a class="btn pri" style="display:inline-block;padding:3px 9px;font-size:12px;margin-top:3px" href="${esc(direto)}" target="_blank" rel="noopener">ir para a passagem ↗</a>`;
   return [seats, site].filter(Boolean).join(" · ");
@@ -347,7 +350,7 @@ async function load(){
   }catch(e){ [D,IMP]=demoData(); for(const r of [...D.ida,...D.volta]) if(PROG[r.p]) LINKS[r.id]=PROG[r.p].u; }
   if(D.demo) $("demo").classList.remove("hide");
   USD = (D.cambio&&D.cambio.USD)||USD;
-  $("upd").textContent = "atualizado " + ago(D.atualizado);
+  $("upd").textContent = "atualizado " + ago(D.atualizado) + (D.modo==="gratis" ? " · versão grátis: voos dos próximos 60 dias" : "");
   // índices
   D.byOrig={}; for(const r of D.volta)(D.byOrig[r.o]=D.byOrig[r.o]||[]).push(r);
   D.byReg={};  for(const r of D.volta)(D.byReg[r.ro]=D.byReg[r.ro]||[]).push(r);
@@ -397,13 +400,22 @@ function legOk(r,f){
 function matchDest(r,f){ return f.dest==="*" || r.d===f.dest || r.rd===f.dest; }
 
 function bestNac(list){ if(!list||!list.length) return null; return list.reduce((a,b)=>custoR(a.p,a.c.Y?.[0]||1e9,a.c.Y?.[1])<=custoR(b.p,b.c.Y?.[0]||1e9,b.c.Y?.[1])?a:b); }
-function nacIda(intl){ // Rio Preto -> SP no mesmo dia ou no dia anterior
-  const same=(D.nacIda[intl.dt]||[]).filter(r=>r.c.Y), prev=(D.nacIda[addD(intl.dt,-1)]||[]).filter(r=>r.c.Y);
+const hm = t => t ? (+t.slice(0,2))*60 + (+t.slice(3,5)) : null;
+function cedo(nac, intl, cab){ // chega em SP pelo menos 4h antes do voo internacional?
+  const ch=nac.f&&nac.f.Y?hm(nac.f.Y[2]):null, sai=intl.f&&(intl.f[cab]||intl.f.Y)?hm((intl.f[cab]||intl.f.Y)[1]):null;
+  return ch==null||sai==null ? false : ch+240<=sai;
+}
+function tarde(nac, intl, cab){ // sai de SP pelo menos 3h depois de chegar do exterior?
+  const sai=nac.f&&nac.f.Y?hm(nac.f.Y[1]):null, ch=intl.f&&(intl.f[cab]||intl.f.Y)?hm((intl.f[cab]||intl.f.Y)[2]):null;
+  return sai==null||ch==null ? false : ch+180<=sai;
+}
+function nacIda(intl,cab){ // Rio Preto -> SP no dia anterior, ou no mesmo dia chegando 4h antes
+  const same=(D.nacIda[intl.dt]||[]).filter(r=>r.c.Y&&cedo(r,intl,cab)), prev=(D.nacIda[addD(intl.dt,-1)]||[]).filter(r=>r.c.Y);
   const pref=same.filter(r=>r.d===intl.o), prefP=prev.filter(r=>r.d===intl.o);
   return bestNac(prefP)||bestNac(pref)||bestNac(prev)||bestNac(same);
 }
-function nacVolta(intl){ // SP -> Rio Preto no mesmo dia ou no dia seguinte
-  const same=(D.nacVolta[intl.dt]||[]).filter(r=>r.c.Y), next=(D.nacVolta[addD(intl.dt,1)]||[]).filter(r=>r.c.Y);
+function nacVolta(intl,cab){ // SP -> Rio Preto no mesmo dia (3h depois) ou no dia seguinte
+  const same=(D.nacVolta[intl.dt]||[]).filter(r=>r.c.Y&&tarde(r,intl,cab)), next=(D.nacVolta[addD(intl.dt,1)]||[]).filter(r=>r.c.Y);
   return bestNac(next.filter(r=>r.o===intl.d))||bestNac(same.filter(r=>r.o===intl.d))||bestNac(next)||bestNac(same);
 }
 
@@ -446,11 +458,13 @@ function draw(){
 function legRow(r,cab,label,nac){
   const v=r.c[cab]||r.c.Y; const saver=(r.s||[]).includes(cab);
   const dur=v[5]?` · ${Math.floor(v[5]/60)}h${String(v[5]%60).padStart(2,"0")}`:"";
+  const fx=r.f&&(r.f[cab]||r.f.Y); const hora=fx&&fx[1]?` · ${fx[1]}–${fx[2]}`:""; const voo=fx&&fx[3]?` · voo ${esc(fx[3])}`:"";
+  const paradas=fx&&fx[4]>0?` · ${fx[4]} parada(s)`:"";
   return `<div class="leg"><div class="dot ${nac?"n":""}"></div>
-   <div><div><b>${label}</b> · ${dBR(r.dt)} · ${ap(r.o)} → ${ap(r.d)}</div>
-   <div class="fa">${progName(r.p)}${v[4]?` · ${esc(v[4])}`:""}${v[3]?" · direto":""}${dur} · ${v[2]} assento(s) · visto ${ago(r.u)}</div></div>
-   <div style="text-align:right"><b>${fmtK(v[0])}</b>${saver?'<span class="tag g" title="No menor patamar já visto para essa rota">saver</span>':""}<div class="fa">+ ${brl(v[1])} taxas</div>
-   <div class="fa">${linksHtml(r)}</div></div></div>`;
+   <div><div><b>${label}</b> · ${dBR(r.dt)}${hora} · ${ap(r.o)} → ${ap(r.d)}</div>
+   <div class="fa">${progName(r.p)}${v[4]?` · ${esc(v[4])}`:""}${voo}${v[3]?" · direto":paradas}${dur}${v[2]?` · ${v[2]} assento(s)`:""} · visto ${ago(r.u)}</div></div>
+   <div style="text-align:right"><b>${fmtK(v[0])}</b>${saver?'<span class="tag g" title="No menor patamar já visto para essa rota">saver</span>':""}<div class="fa">${v[1]==null?"taxas a conferir":"+ "+brl(v[1])+" taxas"}</div>
+   <div class="fa">${linksHtml(r,r.c[cab]?cab:"Y")}</div></div></div>`;
 }
 function nacMissing(label,o,d,dt){
   return `<div class="leg"><div class="dot n"></div><div><div><b>${label}</b> · ${dBR(dt)} · ${ap(o)} → ${ap(d)}</div>
@@ -459,11 +473,11 @@ function nacMissing(label,o,d,dt){
 }
 
 function card(r,f,i){
-  const {a,b}=r; const ni=nacIda(a), nv=nacVolta(b);
+  const {a,b}=r; const ni=nacIda(a,f.cab), nv=nacVolta(b,f.cab);
   const notes=[];
   if(ni && ni.d!==a.o) notes.push(`Troca de aeroporto na ida: você chega em <b>${apTxt(ni.d)}</b> e o voo internacional sai de <b>${apTxt(a.o)}</b>. Conte 1h30–2h de transfer (ônibus do aeroporto ou app) e muita folga.`);
   if(nv && nv.o!==b.d) notes.push(`Troca de aeroporto na volta: chega em <b>${apTxt(b.d)}</b> e o voo para Rio Preto sai de <b>${apTxt(nv.o)}</b>.`);
-  if(ni && ni.dt===a.dt) notes.push(`Ida para São Paulo no mesmo dia do voo internacional. Como são bilhetes separados, um atraso não garante remarcação: se der, prefira ir no dia anterior.`);
+  if(ni && ni.dt===a.dt) notes.push(`Ida para São Paulo no mesmo dia do voo internacional (chegando com 4h+ de folga). Como são bilhetes separados, um atraso não garante remarcação: se der, prefira ir no dia anterior.`);
   if(a.o!==b.d) notes.push(`A volta chega em ${apTxt(b.d)}, diferente do aeroporto de saída (${apTxt(a.o)}).`);
   if(a.d!==b.o) notes.push(`Volta saindo de outra cidade: ${apTxt(b.o)}.`);
   const nacMi=(ni?.c.Y?.[0]||0)+(nv?.c.Y?.[0]||0);
@@ -473,7 +487,7 @@ function card(r,f,i){
    <summary>
      <div><div class="route">Rio Preto → ${esc(apTxt(a.d))}</div><div class="fa">${REG[a.rd]||a.rd||""} · sai por ${a.o}${a.p!==b.p?" · 2 programas":""}</div></div>
      <div class="dates mid">${dShort(a.dt)} → ${dShort(b.dt)} <span class="mu">· ${r.n} dias</span></div>
-     <div class="miles">${fmtK(r.mi)} <small>+ ${brl(r.tx)} taxas · ≈ ${brl(est)}</small></div>
+     <div class="miles">${fmtK(r.mi)} <small>${r.tx==null?"taxas a conferir":"+ "+brl(r.tx)+" taxas"} · ≈ ${brl(est)}</small></div>
      <div class="chev">›</div>
    </summary>
    <div class="legs">
@@ -517,7 +531,7 @@ function impTable(list,past){
    list.map(a=>`<tr><td>${esc(apTxt(a.o))} → <b>${esc(apTxt(a.d))}</b><div class="fa">${progName(a.p)} · só ida</div></td><td>${dBR(a.dt)}</td><td>${CAB[a.cab]}</td>
     <td style="text-align:right"><b>${fmtK(a.mi)}</b><div class="fa">normal ≈ ${fmtK(a.ref)}</div></td><td class="down">−${a.desc}%</td>
     <td>${past?`<span class="fa">${a.visto_desde?dBR(a.visto_desde.slice(0,10)):""} → ${a.sumiu_em?dBR(a.sumiu_em.slice(0,10)):""}</span>`:
-      (LINKS[a.id]?`<a href="${esc(LINKS[a.id])}" target="_blank" rel="noopener">ir para a passagem ↗</a>`:real(a.id)?`<a href="https://seats.aero/i/${encodeURIComponent(a.id)}" target="_blank" rel="noopener">ver</a>`:`<a href="#" data-go="${a.d}">buscar</a>`)}</td></tr>`).join("")+`</table>`;
+      (LINKS[a.fr]||LINKS[a.id]?`<a href="${esc(LINKS[a.fr]||LINKS[a.id])}" target="_blank" rel="noopener">ir para a passagem ↗</a>`:real(a.id)?`<a href="${buscaUrl(a,a.cab)}" target="_blank" rel="noopener">ver</a>`:`<a href="#" data-go="${a.d}">buscar</a>`)}</td></tr>`).join("")+`</table>`;
 }
 function renderImp(){
   $("impAgora").innerHTML=impTable((IMP.agora||[]).slice(0,10),false);

@@ -242,7 +242,7 @@ def marcar_imperdiveis(registros, historico, pct):
                 continue
             if v[0] <= ref * fator:
                 achados.append({
-                    "k": f'{r["id"]}-{cab}', "id": r["id"], "p": r["p"], "o": r["o"], "d": r["d"],
+                    "k": f'{r["id"]}-{cab}', "id": r["id"], "fr": (r.get("f", {}).get(cab) or [None])[0], "p": r["p"], "o": r["o"], "d": r["d"],
                     "dt": r["dt"], "cab": cab, "mi": v[0], "tx": v[1], "ref": round(ref),
                     "desc": round((1 - v[0] / ref) * 100), "base": base,
                 })
@@ -302,6 +302,13 @@ def enviar_telegram(texto):
         return False
 
 
+def link_busca(r, cab):
+    q = urllib.parse.urlencode({"date": r["dt"], "origins": r["o"], "destinations": r["d"], "sources": r["p"],
+                                "applicable_cabin": {"Y": "economy", "W": "premium", "J": "business", "F": "first"}[cab],
+                                "min_seats": 1, "stops": 2})
+    return "https://seats.aero/search?" + q
+
+
 NOMES_CAB = {"Y": "econômica", "W": "premium", "J": "executiva", "F": "primeira"}
 
 
@@ -330,7 +337,7 @@ def processar_alertas(ida):
             enviados.add(chave)
             tx = f" + R$ {v[1]} taxas" if v[1] is not None else ""
             novos.append(f'• {r["o"]}→{r["d"]} {r["dt"]} {NOMES_CAB.get(a.get("cabine"), "")}: '
-                         f'{v[0]:,} milhas{tx} ({r["p"]})\n  https://seats.aero/i/{r["id"]}'.replace(",", "."))
+                         f'{v[0]:,} milhas{tx} ({r["p"]})'.replace(",", ".") + "\n  " + link_busca(r, a.get("cabine") or "Y"))
     if novos:
         cab = f"✈️ {len(novos)} passagem(ns) nos seus alertas:\n\n"
         lote = novos[:25] if cfg.get("modo") == "resumo" else novos
@@ -340,22 +347,29 @@ def processar_alertas(ida):
 
 def main():
     global max_chamadas
-    if not os.environ.get("SEATS_AERO_API_KEY"):
-        sys.exit("Falta a variável SEATS_AERO_API_KEY (configure em Settings > Secrets do GitHub).")
     cfg = ler_json(os.path.join(CONFIG, "config.json"), {})
+    modo = "pro" if os.environ.get("SEATS_AERO_API_KEY") else "gratis"
     total = int(cfg.get("max_chamadas_por_rodada", 450))
     limite_links = int(cfg.get("links_diretos_por_rodada", 150))
     max_chamadas = max(50, total - limite_links)   # reserva chamadas para os links diretos
     os.makedirs(DATA, exist_ok=True)
     agora = datetime.now(timezone.utc)
     hoje_str = agora.date().isoformat()
+    print(f"Modo: {modo}")
 
     print("Câmbio...")
     cambios = cambio()
-    print("Internacional...")
-    ida, volta = coletar_internacional(cfg, cambios)
-    print("Nacional...")
-    nacional = coletar_nacional(cfg, cambios)
+    sessao = None
+    if modo == "gratis":
+        sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+        import gratis
+        ida, volta, nacional, sessao, usadas = gratis.coletar(
+            cfg, cambios, BRASIL, int(cfg.get("max_consultas_gratis", 300)))
+    else:
+        print("Internacional...")
+        ida, volta = coletar_internacional(cfg, cambios)
+        print("Nacional...")
+        nacional = coletar_nacional(cfg, cambios)
 
     historico = ler_json(os.path.join(DATA, "historico.json"), {})
     historico = atualizar_historico(historico, ida + volta, hoje_str)
@@ -377,16 +391,22 @@ def main():
 
     salvar_json(os.path.join(DATA, "voos.json"), {
         "atualizado": agora.isoformat(), "cambio": {k: cambios.get(k) for k in ("USD", "EUR", "CAD", "GBP")},
-        "ida": ida, "volta": volta, "nacional": nacional, "demo": False,
+        "ida": ida, "volta": volta, "nacional": nacional, "demo": False, "modo": modo,
     })
     salvar_json(os.path.join(DATA, "historico.json"), historico)
     salvar_json(os.path.join(DATA, "imperdiveis.json"), imp)
-    print("Links diretos...")
-    max_chamadas = total
-    buscar_links(ida + volta + nacional, imp["agora"], limite_links)
+    print("Links...")
+    if modo == "gratis":
+        cache = ler_json(os.path.join(DATA, "links.json"), {})
+        cache, _ = gratis.links_emissao(sessao, ida + volta, imp["agora"], cache,
+                                         int(cfg.get("links_gratis_por_rodada", 60)))
+        salvar_json(os.path.join(DATA, "links.json"), cache)
+    else:
+        max_chamadas = total
+        buscar_links(ida + volta + nacional, imp["agora"], limite_links)
     processar_alertas(ida)
     print(f"Pronto: {len(ida)} idas, {len(volta)} voltas, {len(nacional)} nacionais, "
-          f"{len(imp['agora'])} imperdíveis, {chamadas} chamadas à API.")
+          f"{len(imp['agora'])} imperdíveis.")
 
 
 if __name__ == "__main__":
