@@ -248,8 +248,14 @@ def marcar_imperdiveis(registros, historico, pct):
                 })
         if not r["s"]:
             del r["s"]
-    achados.sort(key=lambda a: -a["desc"])
-    return achados
+    achados.sort(key=lambda a: (-a["desc"], a["mi"]))
+    # no máximo 1 por rota+classe, para a lista não repetir o mesmo voo em várias datas
+    vistos, unicos = set(), []
+    for a in achados:
+        if (a["o"], a["d"], a["cab"]) not in vistos:
+            vistos.add((a["o"], a["d"], a["cab"]))
+            unicos.append(a)
+    return unicos
 
 
 def buscar_links(regs, imperdiveis, limite):
