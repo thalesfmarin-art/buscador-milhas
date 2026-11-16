@@ -1,0 +1,1531 @@
+{
+ "init": {
+  "capabilities": {
+   "logging": {},
+   "tools": {}
+  },
+  "protocolVersion": "2025-03-26",
+  "serverInfo": {
+   "name": "seats.aero",
+   "version": "1.0.0"
+  }
+ },
+ "tools": [
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Get available tools and limits"
+   },
+   "description": "Return the connected account's available search tools and limits.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {},
+    "type": "object"
+   },
+   "name": "get_capabilities",
+   "outputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "booking": {
+      "type": "boolean"
+     },
+     "cached_search": {
+      "type": "boolean"
+     },
+     "create_alerts": {
+      "type": "boolean"
+     },
+     "daily_requests_per_ip": {
+      "type": "integer"
+     },
+     "expire_alerts": {
+      "type": "boolean"
+     },
+     "live_search": {
+      "type": "boolean"
+     },
+     "max_advance_days": {
+      "type": "integer"
+     },
+     "max_date_range_days": {
+      "type": "integer"
+     },
+     "max_results": {
+      "type": "integer"
+     },
+     "read_alerts": {
+      "type": "boolean"
+     },
+     "scope": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "cached_search",
+     "live_search",
+     "booking",
+     "read_alerts",
+     "create_alerts",
+     "expire_alerts",
+     "max_results",
+     "max_date_range_days",
+     "scope"
+    ],
+    "type": "object"
+   },
+   "title": "Get available tools and limits"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Get flight details"
+   },
+   "description": "Retrieve a cached flight's itinerary, freshness and seats.aero booking instructions link using its flight_ref. Does not refresh availability or book travel. Anonymous access includes only public flights departing today through 60 days from today (UTC calendar dates).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "flight_ref": {
+      "type": "string"
+     }
+    },
+    "required": [
+     "flight_ref"
+    ],
+    "type": "object"
+   },
+   "name": "get_flight_details",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/flight-detail-output",
+    "properties": {
+     "flight": {
+      "properties": {
+       "id": {
+        "type": "integer"
+       },
+       "flight_ref": {
+        "type": "string"
+       },
+       "origin": {
+        "type": "string"
+       },
+       "destination": {
+        "type": "string"
+       },
+       "cabin": {
+        "type": "string"
+       },
+       "departs_at": {
+        "type": "string"
+       },
+       "arrives_at": {
+        "type": "string"
+       },
+       "stops": {
+        "type": "integer"
+       },
+       "flights": {
+        "type": "string"
+       },
+       "miles_price": {
+        "type": "integer"
+       },
+       "mileage_program": {
+        "type": "string"
+       },
+       "aircraft": {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "operating_carriers": {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       },
+       "taxes": {
+        "type": "string"
+       },
+       "duration_minutes": {
+        "type": "integer"
+       },
+       "amenities": {
+        "items": {
+         "properties": {
+          "flight": {
+           "type": "string"
+          },
+          "origin": {
+           "type": "string"
+          },
+          "destination": {
+           "type": "string"
+          },
+          "seat": {
+           "type": "string"
+          },
+          "wifi": {
+           "type": "string"
+          },
+          "seat_pitch": {
+           "type": "string"
+          }
+         },
+         "additionalProperties": false,
+         "type": "object",
+         "required": [
+          "flight",
+          "origin",
+          "destination"
+         ]
+        },
+        "type": "array"
+       },
+       "minutes_old": {
+        "type": "integer"
+       },
+       "remaining_seats": {
+        "type": "integer"
+       },
+       "mixed_cabin_pct": {
+        "type": "integer"
+       },
+       "warnings": {
+        "items": {
+         "type": "string"
+        },
+        "type": "array"
+       }
+      },
+      "additionalProperties": false,
+      "type": "object",
+      "required": [
+       "origin",
+       "destination",
+       "cabin",
+       "departs_at",
+       "arrives_at",
+       "stops",
+       "flights",
+       "miles_price",
+       "mileage_program",
+       "operating_carriers",
+       "duration_minutes",
+       "minutes_old"
+      ]
+     },
+     "segments": {
+      "items": {
+       "properties": {
+        "origin": {
+         "type": "string"
+        },
+        "destination": {
+         "type": "string"
+        },
+        "flight": {
+         "type": "string"
+        },
+        "cabin": {
+         "type": "string"
+        },
+        "departs_at": {
+         "type": "string"
+        },
+        "arrives_at": {
+         "type": "string"
+        },
+        "aircraft": {
+         "type": "string"
+        },
+        "duration_minutes": {
+         "type": "integer"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "origin",
+        "destination",
+        "flight",
+        "cabin",
+        "departs_at",
+        "arrives_at",
+        "duration_minutes"
+       ]
+      },
+      "type": "array"
+     },
+     "url": {
+      "type": "string"
+     },
+     "warning": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "flight",
+     "segments",
+     "url",
+     "warning"
+    ]
+   },
+   "title": "Get flight details"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Search cached award flights"
+   },
+   "description": "Retrieves reward flight availability between the given airports that departs within the given date range. Anonymous access includes only public flights departing today through 60 days from today (UTC calendar dates).",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "aircraft": {
+      "description": "Desired aircraft type(s) (e.g. 737, 320) (optional)",
+      "items": {
+       "type": "string"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "alliances": {
+      "description": "Desired airline alliance(s) (optional). Filters to flights whose operating carrier belongs to one of the given alliances.",
+      "items": {
+       "enum": [
+        "Star Alliance",
+        "Oneworld",
+        "SkyTeam"
+       ],
+       "type": "string"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "arrival_hour": {
+      "additionalProperties": false,
+      "description": "Desired local arrival hours, inclusive to the minute (optional). An arrival after midnight on a later date than departure and before 04:00 counts as late night on the travel day (00:41 is treated as 24:41), so before excludes it and after keeps it. Later next-day arrivals, such as overnight flights landing in the morning, use their own clock time.",
+      "properties": {
+       "after": {
+        "description": "Desired arrival hour on or after, i.e. 6 means 06:00 AM (optional)",
+        "maximum": 23,
+        "minimum": 1,
+        "type": [
+         "integer",
+         "null"
+        ]
+       },
+       "before": {
+        "description": "Desired arrival hour on or before, i.e. 20 means 8:00 PM (optional)",
+        "maximum": 23,
+        "minimum": 1,
+        "type": [
+         "integer",
+         "null"
+        ]
+       }
+      },
+      "required": [
+       "before",
+       "after"
+      ],
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "cabin": {
+      "description": "Desired cabin class of travel (optional)",
+      "enum": [
+       null,
+       "economy",
+       "premium",
+       "business",
+       "first"
+      ],
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "departure_hour": {
+      "additionalProperties": false,
+      "description": "Desired departure hours (optional)",
+      "properties": {
+       "after": {
+        "description": "Desired departure hour on or after, i.e. 12 means 12:00 PM (optional)",
+        "maximum": 23,
+        "minimum": 1,
+        "type": [
+         "integer",
+         "null"
+        ]
+       },
+       "before": {
+        "description": "Desired departure hour on or before, i.e. 14 means 2:00 PM (optional)",
+        "maximum": 23,
+        "minimum": 1,
+        "type": [
+         "integer",
+         "null"
+        ]
+       }
+      },
+      "required": [
+       "before",
+       "after"
+      ],
+      "type": [
+       "object",
+       "null"
+      ]
+     },
+     "destinations": {
+      "description": "Arrival/destination IATA airport codes (e.g LHR or CDG)",
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 100,
+      "type": "array"
+     },
+     "end_date": {
+      "description": "End date in YYYY-MM-DD format, same as start date if only one day. At most 60 days after start_date; split wider ranges into multiple searches.",
+      "type": "string"
+     },
+     "max_fees": {
+      "description": "Maximum number of fees to spend in USD cents (i.e. $400 = 40000) (optional, 0 (unlimited) is the default)",
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "max_points": {
+      "description": "Maximum number of points to spend (optional, 0 (unlimited) is the default)",
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "max_results": {
+      "description": "Maximum number of results to return (optional)",
+      "maximum": 50,
+      "minimum": 0,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "max_stops": {
+      "description": "Maximum number of stops (optional, 0 (direct only) is the default)",
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "min_cabin_pct": {
+      "description": "Minimum share of the journey's distance that must be in the selected cabin, 1-100. 100, or omitting the field, means every segment in the selected cabin (the default). Only set a value below 100 when the user explicitly accepts mixed-cabin itineraries (e.g. 75 allows up to a quarter of the journey in a lower cabin). Itineraries admitted by this tolerance carry mixed_cabin_pct (the share of distance below the cabin) and a mixed_cabin warning; always tell the user those itineraries include segments in a lower cabin. NOTE: 0 here means unset/default, not 'accept anything'. Use 1 for the loosest tolerance. (optional, Pro subscription required)",
+      "maximum": 100,
+      "minimum": 1,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "min_seats": {
+      "description": "Minimum number of seats available, not supported by all mileage programs(optional, 1 is the default)",
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "operating_carriers": {
+      "description": "Desired two-letter IATA operating carrier code(s) (e.g. UA for United Airlines) (optional)",
+      "items": {
+       "type": "string"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "origins": {
+      "description": "Departure/origin IATA airport codes (e.g LHR or LAX)",
+      "items": {
+       "type": "string"
+      },
+      "maxItems": 100,
+      "type": "array"
+     },
+     "programs": {
+      "description": "Desired mileage program(s) (optional, do not specify unless the user asks for them)",
+      "items": {
+       "enum": [
+        "aeromexico",
+        "aeroplan",
+        "alaska",
+        "american",
+        "asiamiles",
+        "azul",
+        "british",
+        "copa",
+        "delta",
+        "emirates",
+        "ethiopian",
+        "etihad",
+        "eurobonus",
+        "eva",
+        "finnair",
+        "flyingblue",
+        "frontier",
+        "iberia",
+        "jal",
+        "jetblue",
+        "latam",
+        "lifemiles",
+        "livelo",
+        "lufthansa",
+        "porter",
+        "qantas",
+        "qatar",
+        "saudia",
+        "singapore",
+        "smiles",
+        "spirit",
+        "turkish",
+        "united",
+        "velocity",
+        "virginatlantic"
+       ],
+       "type": "string"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     },
+     "sort": {
+      "description": "Sort results by field (optional, default is mileage cost)",
+      "enum": [
+       null,
+       "mileage_cost",
+       "departure_time",
+       "duration_minutes",
+       "taxes",
+       "stops"
+      ],
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "sort_direction": {
+      "description": "Sort direction (optional, default is ascending)",
+      "enum": [
+       null,
+       "asc",
+       "desc"
+      ],
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "start_date": {
+      "description": "Start date in YYYY-MM-DD format",
+      "type": "string"
+     },
+     "transfer_partners": {
+      "description": "Desired transferable-points program(s) (optional). Filters to mileage programs that are transfer partners of the given card program(s) — e.g. only show awards bookable by transferring from Amex Membership Rewards.",
+      "items": {
+       "enum": [
+        "amexau",
+        "amexca",
+        "amexus",
+        "bilt",
+        "capitalone",
+        "chaseus",
+        "citius",
+        "esfera",
+        "livelo",
+        "rove",
+        "usbank",
+        "wellsfargo"
+       ],
+       "type": "string"
+      },
+      "type": [
+       "array",
+       "null"
+      ]
+     }
+    },
+    "required": [
+     "origins",
+     "destinations",
+     "start_date",
+     "end_date"
+    ],
+    "type": "object"
+   },
+   "name": "get_flights",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/flight-search-output",
+    "properties": {
+     "flights": {
+      "items": {
+       "properties": {
+        "id": {
+         "type": "integer"
+        },
+        "flight_ref": {
+         "type": "string"
+        },
+        "origin": {
+         "type": "string"
+        },
+        "destination": {
+         "type": "string"
+        },
+        "cabin": {
+         "type": "string"
+        },
+        "departs_at": {
+         "type": "string"
+        },
+        "arrives_at": {
+         "type": "string"
+        },
+        "stops": {
+         "type": "integer"
+        },
+        "flights": {
+         "type": "string"
+        },
+        "miles_price": {
+         "type": "integer"
+        },
+        "mileage_program": {
+         "type": "string"
+        },
+        "aircraft": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "operating_carriers": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        },
+        "taxes": {
+         "type": "string"
+        },
+        "duration_minutes": {
+         "type": "integer"
+        },
+        "amenities": {
+         "items": {
+          "properties": {
+           "flight": {
+            "type": "string"
+           },
+           "origin": {
+            "type": "string"
+           },
+           "destination": {
+            "type": "string"
+           },
+           "seat": {
+            "type": "string"
+           },
+           "wifi": {
+            "type": "string"
+           },
+           "seat_pitch": {
+            "type": "string"
+           }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+           "flight",
+           "origin",
+           "destination"
+          ]
+         },
+         "type": "array"
+        },
+        "minutes_old": {
+         "type": "integer"
+        },
+        "remaining_seats": {
+         "type": "integer"
+        },
+        "mixed_cabin_pct": {
+         "type": "integer"
+        },
+        "warnings": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "origin",
+        "destination",
+        "cabin",
+        "departs_at",
+        "arrives_at",
+        "stops",
+        "flights",
+        "miles_price",
+        "mileage_program",
+        "operating_carriers",
+        "duration_minutes",
+        "minutes_old"
+       ]
+      },
+      "type": "array"
+     },
+     "operating_carriers": {
+      "additionalProperties": {
+       "type": "string"
+      },
+      "type": "object"
+     },
+     "warnings": {
+      "type": "string"
+     },
+     "status": {
+      "type": "string"
+     },
+     "truncated_by": {
+      "type": "integer"
+     },
+     "search_url": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "flights",
+     "warnings",
+     "status",
+     "truncated_by",
+     "search_url"
+    ]
+   },
+   "title": "Search cached award flights"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "List award routes"
+   },
+   "description": "Lists a page of tracked routes that can be searched. Provide exactly two of mileage_program, origin, and destination. Results are ordered by origin, destination, then mileage program. To retrieve all routes, use limit=100 and follow next_offset with the same filters until has_more=false. Restart at offset=0 if the catalog changes while paging. Tracked routes do not establish nonstop service or award availability; verify those with get_flights.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "destination": {
+      "description": "The destination airport to list routes for. (2 of 3 required)",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "limit": {
+      "description": "Routes per page, up to 100. Omitted or 0 defaults to 25. Use 100 when listing all routes.",
+      "maximum": 100,
+      "minimum": 0,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "mileage_program": {
+      "description": "The mileage program to list routes for. (2 of 3 required)",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "offset": {
+      "description": "Number of matching routes to skip. Use next_offset from the previous page with the same filters.",
+      "minimum": 0,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "origin": {
+      "description": "The origin airport to list routes for. (2 of 3 required)",
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "name": "list_routes",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/route-list-output",
+    "properties": {
+     "routes": {
+      "items": {
+       "properties": {
+        "origin_airport": {
+         "type": "string"
+        },
+        "destination_airport": {
+         "type": "string"
+        },
+        "mileage_program": {
+         "type": "string"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "origin_airport",
+        "destination_airport",
+        "mileage_program"
+       ]
+      },
+      "type": "array"
+     },
+     "total_routes": {
+      "type": "integer"
+     },
+     "offset": {
+      "type": "integer"
+     },
+     "limit": {
+      "type": "integer"
+     },
+     "has_more": {
+      "type": "boolean"
+     },
+     "next_offset": {
+      "oneOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "routes",
+     "total_routes",
+     "offset",
+     "limit",
+     "has_more",
+     "next_offset"
+    ]
+   },
+   "title": "List award routes"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "List points transfer partners"
+   },
+   "description": "Lists the transfer partners and base ratios for a specific mileage program.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "mileage_program": {
+      "description": "The mileage program to retrieve transfer partners for.",
+      "enum": [
+       "aeromexico",
+       "aeroplan",
+       "alaska",
+       "american",
+       "asiamiles",
+       "azul",
+       "british",
+       "delta",
+       "emirates",
+       "ethiopian",
+       "etihad",
+       "eurobonus",
+       "finnair",
+       "flyingblue",
+       "frontier",
+       "jetblue",
+       "lifemiles",
+       "livelo",
+       "lufthansa",
+       "porter",
+       "qantas",
+       "qatar",
+       "saudia",
+       "smiles",
+       "turkish",
+       "united",
+       "velocity",
+       "virginatlantic"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "mileage_program"
+    ],
+    "type": "object"
+   },
+   "name": "list_transfer_partners",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/transfer-partners-output",
+    "properties": {
+     "mileage_program": {
+      "type": "string"
+     },
+     "friendly_name": {
+      "type": "string"
+     },
+     "transfer_partners": {
+      "items": {
+       "properties": {
+        "program": {
+         "type": "string"
+        },
+        "friendly_name": {
+         "type": "string"
+        },
+        "base_ratio": {
+         "type": "number"
+        },
+        "eligibility": {
+         "type": "string"
+        },
+        "bonuses": {
+         "items": {
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "ratio": {
+            "type": "number"
+           },
+           "bonus_percent": {
+            "type": "number"
+           },
+           "text": {
+            "type": "string"
+           },
+           "start_date": {
+            "type": "string"
+           },
+           "end_date": {
+            "type": "string"
+           },
+           "targeted": {
+            "type": "boolean"
+           },
+           "eligibility": {
+            "type": "string"
+           }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+           "id",
+           "ratio",
+           "bonus_percent",
+           "text",
+           "end_date",
+           "targeted"
+          ]
+         },
+         "type": "array"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "program",
+        "friendly_name",
+        "base_ratio"
+       ]
+      },
+      "type": "array"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "mileage_program",
+     "friendly_name",
+     "transfer_partners"
+    ]
+   },
+   "title": "List points transfer partners"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "List airline transfer destinations"
+   },
+   "description": "Lists mileage programs that accept transfers from a specific transfer program.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "transfer_program": {
+      "description": "The transfer program to check supported mileage programs for.",
+      "enum": [
+       "amexau",
+       "amexca",
+       "amexus",
+       "bilt",
+       "capitalone",
+       "chaseus",
+       "citius",
+       "esfera",
+       "livelo",
+       "rove",
+       "usbank",
+       "wellsfargo"
+      ],
+      "type": "string"
+     }
+    },
+    "required": [
+     "transfer_program"
+    ],
+    "type": "object"
+   },
+   "name": "list_transfer_program_mileage_programs",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/transfer-program-mileage-programs-output",
+    "properties": {
+     "transfer_program": {
+      "type": "string"
+     },
+     "friendly_name": {
+      "type": "string"
+     },
+     "eligibility": {
+      "type": "string"
+     },
+     "mileage_programs": {
+      "items": {
+       "properties": {
+        "mileage_program": {
+         "type": "string"
+        },
+        "friendly_name": {
+         "type": "string"
+        },
+        "base_ratio": {
+         "type": "number"
+        },
+        "bonuses": {
+         "items": {
+          "properties": {
+           "id": {
+            "type": "string"
+           },
+           "ratio": {
+            "type": "number"
+           },
+           "bonus_percent": {
+            "type": "number"
+           },
+           "text": {
+            "type": "string"
+           },
+           "start_date": {
+            "type": "string"
+           },
+           "end_date": {
+            "type": "string"
+           },
+           "targeted": {
+            "type": "boolean"
+           },
+           "eligibility": {
+            "type": "string"
+           }
+          },
+          "additionalProperties": false,
+          "type": "object",
+          "required": [
+           "id",
+           "ratio",
+           "bonus_percent",
+           "text",
+           "end_date",
+           "targeted"
+          ]
+         },
+         "type": "array"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "mileage_program",
+        "friendly_name",
+        "base_ratio"
+       ]
+      },
+      "type": "array"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "transfer_program",
+     "friendly_name",
+     "mileage_programs"
+    ]
+   },
+   "title": "List airline transfer destinations"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Search airports"
+   },
+   "description": "Looks up airport codes when you don't already know them. Match airports by free-text query (airport name, city, IATA or ICAO code) and/or by country (name or ISO code), and surface seats.aero meta airport codes — metro-area and regional groupings such as NYC, LON, or EUR that expand to several airports. Use this before get_flights or create_alert whenever the user names a place, city, region, or niche airport rather than a code you are sure of.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "country": {
+      "description": "Restrict results to a single country, given as a name ('Japan') or ISO 3166-1 alpha-2 code ('JP'). Optional if a query is given.",
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "limit": {
+      "description": "Optional maximum number of airport results to return. Defaults to 20; capped at 100.",
+      "maximum": 100,
+      "minimum": 1,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "order_by": {
+      "description": "Optional ordering for the airport results. 'relevance' (default) ranks best matches and busiest airports first; 'traffic' sorts by average weekly flights; 'name', 'iata', and 'country' sort alphabetically.",
+      "enum": [
+       null,
+       "relevance",
+       "traffic",
+       "name",
+       "iata",
+       "country"
+      ],
+      "type": [
+       "string",
+       "null"
+      ]
+     },
+     "query": {
+      "description": "Free-text to match against airport IATA/ICAO code, name, city, or address, and against meta airport codes and their labels (e.g. 'Tokyo', 'Heathrow', 'Southeast Asia'). Optional if a country is given.",
+      "type": [
+       "string",
+       "null"
+      ]
+     }
+    },
+    "type": "object"
+   },
+   "name": "search_airports",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/airport-search-output",
+    "properties": {
+     "airports": {
+      "items": {
+       "properties": {
+        "iata": {
+         "type": "string"
+        },
+        "icao": {
+         "type": "string"
+        },
+        "name": {
+         "type": "string"
+        },
+        "country": {
+         "type": "string"
+        },
+        "country_code": {
+         "type": "string"
+        },
+        "avg_weekly_flights": {
+         "type": "integer"
+        },
+        "major_airport": {
+         "type": "boolean"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "iata",
+        "name"
+       ]
+      },
+      "type": "array"
+     },
+     "meta_codes": {
+      "items": {
+       "properties": {
+        "code": {
+         "type": "string"
+        },
+        "label": {
+         "type": "string"
+        },
+        "airports": {
+         "items": {
+          "type": "string"
+         },
+         "type": "array"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "code",
+        "airports"
+       ]
+      },
+      "type": "array"
+     },
+     "total_airport_matches": {
+      "type": "integer"
+     },
+     "returned_airports": {
+      "type": "integer"
+     },
+     "truncated": {
+      "type": "boolean"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "airports",
+     "total_airport_matches",
+     "returned_airports"
+    ]
+   },
+   "title": "Search airports"
+  },
+  {
+   "_meta": {
+    "securitySchemes": [
+     {
+      "type": "noauth"
+     },
+     {
+      "scopes": [
+       "seats.profile.read",
+       "seats.reference.read",
+       "seats.awards.read",
+       "seats.alerts.read",
+       "seats.alerts.create",
+       "seats.alerts.expire",
+       "seats.awards.live",
+       "seats.pricing.read",
+       "seats.pricing.write"
+      ],
+      "type": "oauth2"
+     }
+    ]
+   },
+   "annotations": {
+    "destructiveHint": false,
+    "idempotentHint": true,
+    "openWorldHint": false,
+    "readOnlyHint": true,
+    "title": "Search seats.aero help center"
+   },
+   "description": "Search the seats.aero help center (docs.seats.aero) for product questions and troubleshooting: accounts, billing and subscriptions, Pro features, alerts, search results, data freshness, phantom availability, mileage programs, and the API. Returns matching published articles with text and URLs to cite. Direct requests for human support do not require this lookup. Does not search award availability.",
+   "inputSchema": {
+    "additionalProperties": false,
+    "properties": {
+     "max_results": {
+      "description": "Number of articles to return. Defaults to 3.",
+      "maximum": 5,
+      "minimum": 1,
+      "type": [
+       "integer",
+       "null"
+      ]
+     },
+     "query": {
+      "description": "Short keyword query describing the topic, e.g. \"cancel subscription\" or \"alert not sending\".",
+      "maxLength": 200,
+      "minLength": 1,
+      "type": "string"
+     }
+    },
+    "required": [
+     "query"
+    ],
+    "type": "object"
+   },
+   "name": "search_help_docs",
+   "outputSchema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://github.com/seatsaero/seatsaero/pkg/ffscan/chatlogic/help-docs-output",
+    "properties": {
+     "articles": {
+      "items": {
+       "properties": {
+        "number": {
+         "type": "integer"
+        },
+        "title": {
+         "type": "string"
+        },
+        "url": {
+         "type": "string"
+        },
+        "preview": {
+         "type": "string"
+        },
+        "text": {
+         "type": "string"
+        },
+        "truncated": {
+         "type": "boolean"
+        },
+        "updated_at": {
+         "type": "string"
+        }
+       },
+       "additionalProperties": false,
+       "type": "object",
+       "required": [
+        "title",
+        "url"
+       ]
+      },
+      "type": "array"
+     },
+     "help_center": {
+      "type": "string"
+     },
+     "note": {
+      "type": "string"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "articles",
+     "help_center"
+    ]
+   },
+   "title": "Search seats.aero help center"
+  }
+ ],
+ "exemplo_args": {
+  "tool": "search_airports",
+  "args": {
+   "origin_airport": "GRU",
+   "destination_airport": "LIS",
+   "start_date": "2026-11-23",
+   "end_date": "2027-01-05"
+  }
+ },
+ "exemplo": "{\"_texto\": \"invalid tool arguments: json: unknown field \\\"origin_airport\\\"\", \"_erro\": true}"
+}
