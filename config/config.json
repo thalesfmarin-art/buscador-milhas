@@ -19,5 +19,6 @@
   "cabines_gratis": [
     "economy",
     "business"
-  ]
+  ],
+  "alerta_transferencia_bonus_minimo": 80
 }

@@ -92,6 +92,10 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:
 .kind{display:inline-block;font-size:11px;font-weight:600;padding:2px 7px;border-radius:99px;margin-left:6px;vertical-align:2px;background:var(--accent-soft);color:var(--accent)}
 .kind.i{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
 .go{display:inline-block;margin-top:4px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 9px;color:var(--muted)}
+.chip b{color:var(--ink)}
+.hot{color:var(--good);font-weight:700}
 select.ord{width:auto;padding:6px 8px;font-size:13px}
 footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 </style>
@@ -161,6 +165,11 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
       <div id="calBox" class="hide"></div>
       <div id="results"></div>
       <div style="text-align:center"><button class="btn hide" id="btnMore">mostrar mais</button></div>
+    </section>
+
+    <section class="card">
+      <h2>💳 Transferência bonificada Livelo <small>caçador automático, confere a cada 3h</small></h2>
+      <div id="livelo"></div>
     </section>
 
     <section class="card">
@@ -370,6 +379,7 @@ async function load(){
   D.byOrig={}; for(const r of D.volta)(D.byOrig[r.o]=D.byOrig[r.o]||[]).push(r);
   D.byReg={};  for(const r of D.volta)(D.byReg[r.ro]=D.byReg[r.ro]||[]).push(r);
   buildOptions(); bind(); render(); renderImp(); renderLearn(); renderAlert();
+  try{ const r=await fetch("data/promos_livelo.json",{cache:"no-store"}); renderLivelo(r.ok?await r.json():null); }catch(e){ renderLivelo(null); }
 }
 
 function buildOptions(){
@@ -535,6 +545,31 @@ function renderImp(){
   $("impAgora").innerHTML=impTable((IMP.agora||[]).filter(saindo).slice(0,10),false);
   $("impPassadas").innerHTML=impTable((IMP.passadas||[]).filter(saindo).slice(0,15),true);
   document.querySelectorAll("[data-go]").forEach(el=>el.onclick=e=>{e.preventDefault();$("fDest").value=el.dataset.go;render();$("results").scrollIntoView({behavior:"smooth"});});
+}
+
+/* ===================== Caçador Livelo ===================== */
+const LIV = {smiles:"Smiles",azul:"Azul Fidelidade",latam:"LATAM Pass",tap:"TAP Miles&Go",iberia:"Iberia Plus",copa:"Copa ConnectMiles",accor:"ALL Accor",aeroplan:"Aeroplan",flyingblue:"Flying Blue"};
+function renderLivelo(P){
+  const box=$("livelo");
+  if(!P||!P.promos||!P.promos.length){ box.innerHTML=`<div class="empty">O caçador ainda não encontrou promoções. Ele lê os principais blogs de milhas a cada 3 horas.</div>`; return; }
+  const hoje=new Date().toISOString().slice(0,10);
+  const ativa=p=> p.validade ? p.validade>=hoje : (Date.now()-new Date(p.publicado))<3*864e5;
+  // uma linha por programa+bônus (várias fontes falam da mesma promoção)
+  const uniq=(L)=>{const m=new Map(); for(const p of L){const k=p.prog+p.bonus+(p.validade||""); if(!m.has(k)) m.set(k,p);} return [...m.values()];};
+  const ativas=uniq(P.promos.filter(ativa)).sort((a,b)=>b.bonus-a.bonus);
+  const recentes=uniq(P.promos.filter(p=>!ativa(p)&&(Date.now()-new Date(p.publicado))<45*864e5)).slice(0,8);
+  const melhor={}; for(const p of P.promos) if(!melhor[p.prog]||p.bonus>melhor[p.prog]) melhor[p.prog]=p.bonus;
+  const linha=(p,on)=>`<tr><td><b>${LIV[p.prog]||p.prog}</b><div class="fa">${esc(p.fonte)}</div></td>
+    <td class="${p.bonus>=80?"hot":""}">até ${p.bonus}%</td>
+    <td>${p.validade?(on?"até ":"")+dBR(p.validade):`<span class="fa">${on?"confira a validade":"—"}</span>`}</td>
+    <td>${p.bonus>=melhor[p.prog]?'<span class="tag g">melhor do ano</span>':`<span class="fa">recorde: ${melhor[p.prog]}%</span>`}</td>
+    <td><a href="${esc(p.link)}" target="_blank" rel="noopener">detalhes ↗</a></td></tr>`;
+  const cab=`<tr><th>Livelo →</th><th>Bônus</th><th>Validade</th><th></th><th></th></tr>`;
+  box.innerHTML=(ativas.length?`<table class="mini">${cab}${ativas.map(p=>linha(p,1)).join("")}</table>`:
+      `<div class="empty" style="padding:14px">Nenhuma transferência bonificada Livelo ativa agora.</div>`)+
+    (recentes.length?`<details class="more"><summary>últimas que já acabaram</summary><table class="mini" style="margin-top:8px">${cab}${recentes.map(p=>linha(p,0)).join("")}</table></details>`:"")+
+    `<div class="chips">${Object.entries(melhor).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip">${LIV[k]||k}: recorde <b>${v}%</b></span>`).join("")}</div>
+     <p class="fa" style="margin-bottom:0">Regra de bolso: bônus de 80%+ costuma valer a pena. Quase sempre é preciso <b>se cadastrar na página da promoção antes</b> de transferir, e o bônus maior fica para quem assina os clubes. Atualizado ${ago(P.atualizado)}.</p>`;
 }
 
 /* ===================== Aprenda ===================== */
