@@ -110,7 +110,7 @@ def coletar(cfg, cambios, brasil, limite):
 
     nac = []
     sp, origem = cfg["aeroportos_conexao_sp"], cfg["cidade_origem"]
-    for d0 in range(0, 59, 15):   # janelas de 15 dias para pegar mais datas
+    for d0 in (range(0, 59, 15) if cfg.get("coletar_nacional", True) else []):   # janelas de 15 dias para pegar mais datas
         a, b = (hoje + timedelta(days=1 + d0)).isoformat(), (hoje + timedelta(days=min(59, d0 + 15))).isoformat()
         for o, d in (([origem], sp), (sp, [origem])):
             if chamadas >= limite:

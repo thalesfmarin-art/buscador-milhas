@@ -3,7 +3,17 @@
   "cidade_origem": "SJP",
   "aeroportos_internacionais": [
     "GRU",
-    "VCP"
+    "VCP",
+    "GIG",
+    "BSB",
+    "CNF",
+    "REC",
+    "FOR",
+    "SSA",
+    "POA",
+    "CWB",
+    "FLN",
+    "BEL"
   ],
   "aeroportos_conexao_sp": [
     "GRU",
@@ -14,11 +24,14 @@
   "max_chamadas_por_rodada": 450,
   "links_diretos_por_rodada": 150,
   "imperdivel_percentual_abaixo_da_media": 30,
-  "max_consultas_gratis": 300,
+  "max_consultas_gratis": 480,
   "links_gratis_por_rodada": 60,
   "cabines_gratis": [
     "economy",
-    "business"
+    "premium",
+    "business",
+    "first"
   ],
-  "alerta_transferencia_bonus_minimo": 80
+  "alerta_transferencia_bonus_minimo": 80,
+  "coletar_nacional": false
 }

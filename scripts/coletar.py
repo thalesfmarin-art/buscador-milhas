@@ -398,6 +398,11 @@ def main():
             passadas.insert(0, a)
     imp = {"agora": list(atuais.values()), "passadas": passadas[:100]}
 
+    # proteção: se a coleta veio muito menor que a anterior (limite diário, erro), mantém os dados antigos
+    anterior = ler_json(os.path.join(DATA, "voos.json"), {})
+    if len(ida) < 0.5 * len(anterior.get("ida", [])):
+        print(f"Coleta incompleta ({len(ida)} idas vs {len(anterior['ida'])} antes): mantendo os dados anteriores.")
+        return
     salvar_json(os.path.join(DATA, "voos.json"), {
         "atualizado": agora.isoformat(), "cambio": {k: cambios.get(k) for k in ("USD", "EUR", "CAD", "GBP")},
         "ida": ida, "volta": volta, "nacional": nacional, "demo": False, "modo": modo,
