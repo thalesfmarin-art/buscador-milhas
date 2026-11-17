@@ -307,7 +307,8 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 /* ===================== Dados fixos ===================== */
 const CAB = {Y:"Econômica",W:"Premium",J:"Executiva",F:"Primeira"};
 const REG = {"North America":"América do Norte","South America":"América do Sul","Europe":"Europa","Asia":"Ásia","Africa":"África","Oceania":"Oceania","Middle East":"Oriente Médio","Central America":"América Central","Caribbean":"Caribe"};
-const AP = {GIG:"Rio (Galeão)",BSB:"Brasília",CNF:"Belo Horizonte (Confins)",REC:"Recife",FOR:"Fortaleza",SSA:"Salvador",POA:"Porto Alegre",CWB:"Curitiba",FLN:"Florianópolis",BEL:"Belém",GRU:"Guarulhos",VCP:"Viracopos",CGH:"Congonhas",SJP:"Rio Preto",LIS:"Lisboa",OPO:"Porto",MAD:"Madri",BCN:"Barcelona",CDG:"Paris",ORY:"Paris Orly",FCO:"Roma",MXP:"Milão",LHR:"Londres",LGW:"Londres Gatwick",FRA:"Frankfurt",MUC:"Munique",AMS:"Amsterdã",ZRH:"Zurique",IST:"Istambul",DXB:"Dubai",DOH:"Doha",AUH:"Abu Dhabi",ADD:"Adis Abeba",JFK:"Nova York",EWR:"Nova York (Newark)",MIA:"Miami",MCO:"Orlando",FLL:"Fort Lauderdale",ATL:"Atlanta",IAH:"Houston",ORD:"Chicago",DFW:"Dallas",LAX:"Los Angeles",IAD:"Washington",YYZ:"Toronto",YUL:"Montreal",PTY:"Panamá",MEX:"Cidade do México",CUN:"Cancún",BOG:"Bogotá",LIM:"Lima",SCL:"Santiago",EZE:"Buenos Aires",AEP:"Buenos Aires (Aeroparque)",MVD:"Montevidéu",ASU:"Assunção",NRT:"Tóquio",HND:"Tóquio Haneda",SIN:"Singapura",JNB:"Joanesburgo",LAD:"Luanda",CMN:"Casablanca",HEL:"Helsinque",CPH:"Copenhague",ARN:"Estocolmo",SYD:"Sydney",MEL:"Melbourne",AKL:"Auckland",UIO:"Quito",PUJ:"Punta Cana",SDQ:"Santo Domingo",HAV:"Havana",BRU:"Bruxelas",VIE:"Viena",ATH:"Atenas",DUB:"Dublin",EDI:"Edimburgo",JED:"Jidá",RUH:"Riade",ICN:"Seul",PEK:"Pequim",HKG:"Hong Kong",BKK:"Bangkok",DEL:"Nova Délhi"};
+const INTERIOR = "SJP";
+const AP = {GIG:"Rio (Galeão)",BSB:"Brasília",CNF:"Belo Horizonte (Confins)",REC:"Recife",FOR:"Fortaleza",SSA:"Salvador",POA:"Porto Alegre",CWB:"Curitiba",FLN:"Florianópolis",BEL:"Belém",GRU:"Guarulhos",VCP:"Viracopos",CGH:"Congonhas",SJP:"São José do Rio Preto",LIS:"Lisboa",OPO:"Porto",MAD:"Madri",BCN:"Barcelona",CDG:"Paris",ORY:"Paris Orly",FCO:"Roma",MXP:"Milão",LHR:"Londres",LGW:"Londres Gatwick",FRA:"Frankfurt",MUC:"Munique",AMS:"Amsterdã",ZRH:"Zurique",IST:"Istambul",DXB:"Dubai",DOH:"Doha",AUH:"Abu Dhabi",ADD:"Adis Abeba",JFK:"Nova York",EWR:"Nova York (Newark)",MIA:"Miami",MCO:"Orlando",FLL:"Fort Lauderdale",ATL:"Atlanta",IAH:"Houston",ORD:"Chicago",DFW:"Dallas",LAX:"Los Angeles",IAD:"Washington",YYZ:"Toronto",YUL:"Montreal",PTY:"Panamá",MEX:"Cidade do México",CUN:"Cancún",BOG:"Bogotá",LIM:"Lima",SCL:"Santiago",EZE:"Buenos Aires",AEP:"Buenos Aires (Aeroparque)",MVD:"Montevidéu",ASU:"Assunção",NRT:"Tóquio",HND:"Tóquio Haneda",SIN:"Singapura",JNB:"Joanesburgo",LAD:"Luanda",CMN:"Casablanca",HEL:"Helsinque",CPH:"Copenhague",ARN:"Estocolmo",SYD:"Sydney",MEL:"Melbourne",AKL:"Auckland",UIO:"Quito",PUJ:"Punta Cana",SDQ:"Santo Domingo",HAV:"Havana",BRU:"Bruxelas",VIE:"Viena",ATH:"Atenas",DUB:"Dublin",EDI:"Edimburgo",JED:"Jidá",RUH:"Riade",ICN:"Seul",PEK:"Pequim",HKG:"Hong Kong",BKK:"Bangkok",DEL:"Nova Délhi"};
 const TRANSFER_BR = "Recebe pontos de Livelo, Esfera e da maioria dos cartões de bancos brasileiros (Itaú, Bradesco, BB, Caixa, C6, XP…), geralmente com transferências bonificadas algumas vezes por ano.";
 const TRANSFER_EXT = "Em geral não recebe pontos de cartões brasileiros: o caminho é comprar milhas direto no site do programa, em promoção (paga em dólar no cartão internacional, com IOF).";
 const CANCEL = "Regra e taxa de cancelamento mudam por programa e tarifa: confira na tela de emissão antes de pagar.";
@@ -418,12 +419,14 @@ async function load(){
   // índices
   D.byOrig={}; for(const r of D.volta)(D.byOrig[r.o]=D.byOrig[r.o]||[]).push(r);
   D.byReg={};  for(const r of D.volta)(D.byReg[r.ro]=D.byReg[r.ro]||[]).push(r);
+  D.nacIda={}; D.nacVolta={};
+  for(const r of (D.nacional||[])){ if(!r.c.Y) continue; if(r.o===INTERIOR)(D.nacIda[r.dt]=D.nacIda[r.dt]||[]).push(r); else if(r.d===INTERIOR)(D.nacVolta[r.dt]=D.nacVolta[r.dt]||[]).push(r); }
   buildOptions(); bind(); render(); renderImp(); renderLearn(); renderAlert();
   try{ const r=await fetch("data/promos_livelo.json",{cache:"no-store"}); renderLivelo(r.ok?await r.json():null); }catch(e){ renderLivelo(null); }
 }
 
 function buildOptions(){
-  const origs=[...new Set(D.ida.map(r=>r.o))].sort((a,b)=>a==="GRU"?-1:b==="GRU"?1:apTxt(a).localeCompare(apTxt(b)));
+  const origs=[...new Set([...D.ida.map(r=>r.o), INTERIOR])].sort((a,b)=>a==="GRU"?-1:b==="GRU"?1:a===INTERIOR?-1:b===INTERIOR?1:apTxt(a).localeCompare(apTxt(b)));
   $("fOrig").innerHTML=`<option value="*">Todos os aeroportos</option>`+origs.map(o=>`<option value="${o}" ${o==="GRU"?"selected":""}>${apTxt(o)} (${o})</option>`).join("");
   const regs=[...new Set(D.ida.map(r=>r.rd))].sort();
   const cities=[...new Set(D.ida.map(r=>r.d))].sort((a,b)=>apTxt(a).localeCompare(apTxt(b)));
@@ -483,26 +486,60 @@ function legOkCab(r,f,cab){
 const legOk = (r,f) => legOkCab(r,f,f.cab);
 function matchDest(r,f){ return f.dest==="*" || r.d===f.dest || r.rd===f.dest; }
 
+// trecho nacional: Rio Preto -> SP no dia anterior, ou no mesmo dia chegando 4h antes (e o inverso na volta)
+const hm = t => t ? (+t.slice(0,2))*60 + (+t.slice(3,5)) : null;
+const fx = (r,cab) => r.f&&(r.f[cab]||r.f.Y);
+function nacParaIda(a,cab){
+  let best=null;
+  for(const [dt,mesmo] of [[addD(a.dt,-1),0],[a.dt,1]]) for(const n of (D.nacIda[dt]||[])){
+    if(n.d!==a.o) continue;
+    if(mesmo){ const ch=hm(fx(n,"Y")?.[2]), sai=hm(fx(a,cab)?.[1]); if(ch==null||sai==null||ch+240>sai) continue; }
+    if(!best||n.c.Y[0]<best.c.Y[0]) best=n;
+  }
+  return best;
+}
+function nacParaVolta(b,cab){
+  let best=null;
+  for(const [dt,mesmo] of [[b.dt,1],[addD(b.dt,1),0]]) for(const n of (D.nacVolta[dt]||[])){
+    if(n.o!==b.d) continue;
+    if(mesmo){ const ch=hm(fx(b,cab)?.[2]), sai=hm(fx(n,"Y")?.[1]); if(ch==null||sai==null||ch+180>sai) continue; }
+    if(!best||n.c.Y[0]<best.c.Y[0]) best=n;
+  }
+  return best;
+}
+const somaTx = (...t) => t.some(x=>x===undefined)?null : t.reduce((s,x)=>s==null||x==null?null:s+x, 0);
 function search(){
   const f=F(), rows=[];
-  for(const a of D.ida){
+  // lista de idas: normal, ou (Rio Preto) itinerários diretos + idas de GRU/VCP com trecho nacional
+  let idas = D.ida;
+  if(f.orig===INTERIOR){
+    idas = D.ida.filter(a=>a.o===INTERIOR);
+    for(const a of D.ida) if(a.o==="GRU"||a.o==="VCP") idas.push({...a, _via:a.o, o:INTERIOR});
+  }
+  for(const a of idas){
     if(!origOk(a.o,f) || !matchDest(a,f)) continue;
     if(f.idaDe && a.dt<f.idaDe) continue; if(f.idaAte && a.dt>f.idaAte) continue;
     const cells={}; let any=false;
     for(const cab of f.cabs){
       if(!legOkCab(a,f,cab)) continue;
       const va=a.c[cab];
-      if(f.tipo==="i"){ if(va[0]<=f.max){ cells[cab]={mi:va[0],tx:va[1],dir:va[3],stops:a.f&&a.f[cab]?a.f[cab][4]:null}; any=true; } continue; }
-      let best=null,bm=Infinity;
+      const ni = a._via ? nacParaIda({...a,o:a._via},cab) : null;
+      if(a._via && !ni) continue;                      // sem voo Rio Preto -> SP que encaixe
+      const miI = va[0] + (ni?ni.c.Y[0]:0), txI = somaTx(va[1], ni?ni.c.Y[1]:0);
+      if(f.tipo==="i"){ if(miI<=f.max){ cells[cab]={mi:miI,tx:txI,dir:va[3]&&!ni,stops:ni?null:(fx(a,cab)?.[4]),ni}; any=true; } continue; }
+      const chegada = a._via || a.o;
+      let best=null,bm=Infinity,bnv=null;
       for(const b of (D.byOrig[a.d]||[])){
-        if(b.d!==a.o) continue;
+        if(a._via ? !(b.d==="GRU"||b.d==="VCP") : b.d!==chegada) continue;
         const n=days(a.dt,b.dt); if(n<f.dmin||n>f.dmax) continue;
         if(!legOkCab(b,f,cab)) continue;
-        if(b.c[cab][0]<bm){bm=b.c[cab][0];best=b;}
+        const nv = a._via ? nacParaVolta(b,cab) : null; if(a._via && !nv) continue;
+        const m=b.c[cab][0]+(nv?nv.c.Y[0]:0);
+        if(m<bm){bm=m;best=b;bnv=nv;}
       }
       if(!best) continue;
-      const vb=best.c[cab], mi=va[0]+vb[0]; if(mi>f.max) continue;
-      cells[cab]={mi, tx:(va[1]==null||vb[1]==null)?null:va[1]+vb[1], dir:va[3]&&vb[3], b:best, n:days(a.dt,best.dt)}; any=true;
+      const mi=miI+bm; if(mi>f.max) continue;
+      cells[cab]={mi, tx:somaTx(txI, best.c[cab][1], bnv?bnv.c.Y[1]:0), dir:va[3]&&best.c[cab][3]&&!ni, b:best, n:days(a.dt,best.dt), ni, nv:bnv}; any=true;
     }
     if(any) rows.push({a,cells,min:Math.min(...Object.values(cells).map(c=>c.mi))});
   }
@@ -513,7 +550,7 @@ function search(){
 }
 
 function render(){ lastList=search(); OPEN=null; draw(); }
-function stopTxt(c){ return c.dir?"Direto":(c.stops>0?`${c.stops} parada${c.stops>1?"s":""}`:"Conexão"); }
+function stopTxt(c){ if(c.ni) return "Via SP"; return c.dir?"Direto":(c.stops>0?`${c.stops} parada${c.stops>1?"s":""}`:"Conexão"); }
 function draw(){
   const f=F(), L=lastList, iv=f.tipo==="iv";
   $("count").textContent = L.length ? `${fmt(L.length)} ${iv?"ida e volta":"só ida"}` : "";
@@ -526,7 +563,7 @@ function draw(){
       const best=x.mi===r.min&&Object.keys(r.cells).length>1;
       return `<td><div class="pill"><small>${stopTxt(x)}${x.b?`<span class="vt">volta ${dShort(x.b.dt)}</span>`:""}</small><b>${fmtK(x.mi).replace(" mil","k")}</b></div></td>`;}).join("");
     const det = OPEN===i ? `<tr class="det"><td colspan="${5+f.cabs.length}">${detalhe(r,f)}</td></tr>` : "";
-    return `<tr class="row" data-i="${i}"><td>${a.dt}</td><td class="prg">${ago(a.u)}</td><td>${esc(apTxt(a.o))}<span class="code">${a.o}</span></td><td>${esc(apTxt(a.d))}<span class="code">${a.d}</span></td><td class="prg">${progName(a.p)}</td>${cells}</tr>${det}`;
+    return `<tr class="row" data-i="${i}"><td>${a.dt}</td><td class="prg">${ago(a.u)}</td><td>${esc(apTxt(a.o))}<span class="code">${a.o}</span>${a._via?`<div class="prg">conexão em ${a._via} (2 bilhetes)</div>`:""}</td><td>${esc(apTxt(a.d))}<span class="code">${a.d}</span></td><td class="prg">${progName(a.p)}</td>${cells}</tr>${det}`;
   }).join("");
   $("tbl").innerHTML=head+body;
   bindHead();
@@ -551,8 +588,9 @@ function detalhe(r,f){
   const a=r.a, partes=[];
   for(const cab of f.cabs){ const x=r.cells[cab]; if(!x) continue;
     const progs=[...new Set([a.p,x.b?.p].filter(Boolean))];
-    partes.push(`<div style="margin-top:10px"><b>${CAB[cab]}</b> · ${x.b?`ida e volta, ${x.n} dias`:"só ida"} · <b>${fmtK(x.mi)} milhas</b>${x.tx!=null?` + ${brl(x.tx)} de taxas`:" · taxas a conferir"} <span class="fa">(≈ ${brl(custoR(a.p,a.c[cab][0],a.c[cab][1])+(x.b?custoR(x.b.p,x.b.c[cab][0],x.b.c[cab][1]):0))} comprando milhas em promoção)</span></div>
-      ${legRow(a,cab,"Ida")}${x.b?legRow(x.b,cab,"Volta"):""}
+    partes.push(`<div style="margin-top:10px"><b>${CAB[cab]}</b> · ${x.b?`ida e volta, ${x.n} dias`:"só ida"} · <b>${fmtK(x.mi)} milhas</b>${x.tx!=null?` + ${brl(x.tx)} de taxas`:" · taxas a conferir"} <span class="fa">(≈ ${brl(custoR(a.p,a.c[cab][0],a.c[cab][1])+(x.b?custoR(x.b.p,x.b.c[cab][0],x.b.c[cab][1]):0)+(x.ni?custoR(x.ni.p,x.ni.c.Y[0],x.ni.c.Y[1]):0)+(x.nv?custoR(x.nv.p,x.nv.c.Y[0],x.nv.c.Y[1]):0))} comprando milhas em promoção)</span>${x.ni?` <span class="fa">· inclui o trecho nacional</span>`:""}</div>
+      ${x.ni?legRow(x.ni,"Y","Ida · nacional"):""}${legRow({...a,o:a._via||a.o},cab,x.ni?"Ida · internacional":"Ida")}${x.b?legRow(x.b,cab,x.nv?"Volta · internacional":"Volta"):""}${x.nv?legRow(x.nv,"Y","Volta · nacional"):""}
+      ${x.ni?`<div class="note">O trecho Rio Preto ↔ São Paulo é um bilhete separado: um atraso não garante remarcação do voo internacional. O site só sugere voos que chegam com 4h+ de folga ou no dia anterior.</div>`:""}
       ${x.b&&x.b.p!==a.p?`<div class="note">Ida e volta em programas diferentes (${progName(a.p)} + ${progName(x.b.p)}): são duas emissões separadas.</div>`:""}`);
   }
   const x=PROG[a.p]||{};

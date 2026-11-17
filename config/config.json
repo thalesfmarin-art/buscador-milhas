@@ -33,5 +33,6 @@
     "first"
   ],
   "alerta_transferencia_bonus_minimo": 80,
-  "coletar_nacional": false
+  "coletar_nacional": true,
+  "origem_interior": "SJP"
 }

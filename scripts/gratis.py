@@ -106,6 +106,13 @@ def coletar(cfg, cambios, brasil, limite):
         if erros > 15:
             print("  muitos erros, parando a coleta")
             break
+    # origem do interior (ex.: Rio Preto): tenta itinerários diretos com conexão no mesmo bilhete
+    extra = cfg.get("origem_interior")
+    if extra:
+        todos = list(DESTINOS)
+        for cab in cabines:
+            ida += buscar([extra], todos, cab)
+            volta += buscar(todos, [extra], cab)
     print(f"  internacional: {len(ida)} voos de ida, {len(volta)} de volta ({chamadas} consultas)")
 
     nac = []
@@ -124,8 +131,9 @@ def coletar(cfg, cambios, brasil, limite):
                 print("  erro nacional:", e)
     print(f"  nacional: {len(nac)} voos")
 
-    regs_ida = [r for r in agrupar(ida, cambios, regiao_de) if r["o"] in portas and r["d"] not in brasil]
-    regs_volta = [r for r in agrupar(volta, cambios, regiao_de) if r["d"] in portas and r["o"] not in brasil]
+    saidas = set(portas) | ({extra} if extra else set())
+    regs_ida = [r for r in agrupar(ida, cambios, regiao_de) if r["o"] in saidas and r["d"] not in brasil]
+    regs_volta = [r for r in agrupar(volta, cambios, regiao_de) if r["d"] in saidas and r["o"] not in brasil]
     regs_nac = agrupar(nac, cambios, regiao_de)
     return regs_ida, regs_volta, regs_nac, m, chamadas
 
