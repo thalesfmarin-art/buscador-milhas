@@ -492,8 +492,9 @@ const fx = (r,cab) => r.f&&(r.f[cab]||r.f.Y);
 function nacParaIda(a,cab){
   let best=null;
   for(const [dt,mesmo] of [[addD(a.dt,-1),0],[a.dt,1]]) for(const n of (D.nacIda[dt]||[])){
-    if(n.d!==a.o) continue;
-    if(mesmo){ const ch=hm(fx(n,"Y")?.[2]), sai=hm(fx(a,cab)?.[1]); if(ch==null||sai==null||ch+240>sai) continue; }
+    const troca = n.d!==a.o;                                  // chega em Congonhas e sai de Guarulhos
+    if(troca && !(n.d==="CGH" && a.o==="GRU")) continue;
+    if(mesmo){ const ch=hm(fx(n,"Y")?.[2]), sai=hm(fx(a,cab)?.[1]); if(ch==null||sai==null||ch+(troca?360:240)>sai) continue; }
     if(!best||n.c.Y[0]<best.c.Y[0]) best=n;
   }
   return best;
@@ -501,8 +502,9 @@ function nacParaIda(a,cab){
 function nacParaVolta(b,cab){
   let best=null;
   for(const [dt,mesmo] of [[b.dt,1],[addD(b.dt,1),0]]) for(const n of (D.nacVolta[dt]||[])){
-    if(n.o!==b.d) continue;
-    if(mesmo){ const ch=hm(fx(b,cab)?.[2]), sai=hm(fx(n,"Y")?.[1]); if(ch==null||sai==null||ch+180>sai) continue; }
+    const troca = n.o!==b.d;
+    if(troca && !(n.o==="CGH" && b.d==="GRU")) continue;
+    if(mesmo){ const ch=hm(fx(b,cab)?.[2]), sai=hm(fx(n,"Y")?.[1]); if(ch==null||sai==null||ch+(troca?300:180)>sai) continue; }
     if(!best||n.c.Y[0]<best.c.Y[0]) best=n;
   }
   return best;
@@ -590,6 +592,7 @@ function detalhe(r,f){
     const progs=[...new Set([a.p,x.b?.p].filter(Boolean))];
     partes.push(`<div style="margin-top:10px"><b>${CAB[cab]}</b> · ${x.b?`ida e volta, ${x.n} dias`:"só ida"} · <b>${fmtK(x.mi)} milhas</b>${x.tx!=null?` + ${brl(x.tx)} de taxas`:" · taxas a conferir"} <span class="fa">(≈ ${brl(custoR(a.p,a.c[cab][0],a.c[cab][1])+(x.b?custoR(x.b.p,x.b.c[cab][0],x.b.c[cab][1]):0)+(x.ni?custoR(x.ni.p,x.ni.c.Y[0],x.ni.c.Y[1]):0)+(x.nv?custoR(x.nv.p,x.nv.c.Y[0],x.nv.c.Y[1]):0))} comprando milhas em promoção)</span>${x.ni?` <span class="fa">· inclui o trecho nacional</span>`:""}</div>
       ${x.ni?legRow(x.ni,"Y","Ida · nacional"):""}${legRow({...a,o:a._via||a.o},cab,x.ni?"Ida · internacional":"Ida")}${x.b?legRow(x.b,cab,x.nv?"Volta · internacional":"Volta"):""}${x.nv?legRow(x.nv,"Y","Volta · nacional"):""}
+      ${(x.ni&&x.ni.d!==(a._via||a.o))||(x.nv&&x.b&&x.nv.o!==x.b.d)?`<div class="note">Troca de aeroporto em São Paulo (Congonhas ↔ Guarulhos): conte 1h30–2h de transfer, de ônibus do aeroporto ou app.</div>`:""}
       ${x.ni?`<div class="note">O trecho Rio Preto ↔ São Paulo é um bilhete separado: um atraso não garante remarcação do voo internacional. O site só sugere voos que chegam com 4h+ de folga ou no dia anterior.</div>`:""}
       ${x.b&&x.b.p!==a.p?`<div class="note">Ida e volta em programas diferentes (${progName(a.p)} + ${progName(x.b.p)}): são duas emissões separadas.</div>`:""}`);
   }
