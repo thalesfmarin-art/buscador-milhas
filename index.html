@@ -192,6 +192,15 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
   <!-- ============ APRENDA ============ -->
   <div id="tab-aprenda" class="hide lesson">
     <section class="card">
+      <h2>🌳 Quem emite quem <small>com milhas de um programa, em quais companhias dá para voar</small></h2>
+      <div class="grid" style="grid-template-columns:1fr"><div><label>Quero voar de… (ex.: Turkish, Emirates, TAP)</label>
+        <input id="pq" placeholder="digite o nome da companhia aérea" autocomplete="off"></div></div>
+      <div id="pres" style="margin-top:10px"></div>
+      <div id="arvore" style="margin-top:6px"></div>
+      <p class="fa">Parceria não garante assento: a companhia libera poucos lugares para milhas, e por isso vale buscar em mais de um programa. Listas de 2026; as parcerias mudam, então confira no site do programa antes de comprar milhas.</p>
+    </section>
+
+    <section class="card">
       <h2>Mini curso: milhas sem complicação</h2>
       <h3>1. O que é o “milheiro”</h3>
       <p>Milheiro é o preço de <b>1.000 milhas</b>. Se você pagou R$ 160 por 10.000 milhas, seu milheiro foi <b>R$ 16</b>. É o número que diz se uma compra de milhas foi boa ou ruim.</p>
@@ -215,15 +224,6 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
         <li><b>Saindo do interior:</b> o trecho até Guarulhos é um bilhete separado; deixe folga grande ou chegue no dia anterior.</li>
       </ol>
       <p class="mu">Dica: só compre milhas <b>depois</b> de achar a passagem, e de preferência com a tarifa ainda aparecendo. A disponibilidade pode sumir.</p>
-    </section>
-
-    <section class="card">
-      <h2>🌳 Quem emite quem <small>com milhas de um programa, em quais companhias dá para voar</small></h2>
-      <div class="grid" style="grid-template-columns:1fr"><div><label>Quero voar de… (ex.: Turkish, Emirates, TAP)</label>
-        <input id="pq" placeholder="digite o nome da companhia aérea" autocomplete="off"></div></div>
-      <div id="pres" style="margin-top:10px"></div>
-      <div id="arvore" style="margin-top:6px"></div>
-      <p class="fa">Parceria não garante assento: a companhia libera poucos lugares para milhas, e por isso vale buscar em mais de um programa. Listas de 2026; as parcerias mudam, então confira no site do programa antes de comprar milhas.</p>
     </section>
 
     <section class="card">
@@ -616,7 +616,7 @@ function renderArvore(q){
   const chips = L => `<div class="chips">${L.map(c=>`<span class="chip ${hit(c)?"on":""}">${esc(c)}</span>`).join("")}</div>`;
   let h = Object.entries(ARV).map(([prog,regs])=>{
     const tot=Object.values(regs).flat().length, tem=Object.values(regs).flat().some(hit);
-    return `<details ${tem?"open":""}><summary>${prog} <span class="fa">· ${tot} companhias</span></summary>${Object.entries(regs).map(([r,L])=>`<div class="reg">${r}</div>${chips(L)}`).join("")}</details>`;
+    return `<details open><summary>${prog} <span class="fa">· ${tot} companhias</span></summary>${Object.entries(regs).map(([r,L])=>`<div class="reg">${r}</div>${chips(L)}`).join("")}</details>`;
   }).join("");
   h += `<details><summary>Programas estrangeiros <span class="fa">· emitem a aliança inteira</span></summary>${Object.entries(ALI).map(([a,L])=>
       `<details ${L.some(hit)?"open":""}><summary>${a} <span class="fa">· via ${ALI_PROG[a].join(", ")}</span></summary>${chips(L)}</details>`).join("")}</details>`;
