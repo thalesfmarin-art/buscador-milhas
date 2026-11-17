@@ -556,19 +556,21 @@ function renderLivelo(P){
   const ativa=p=> p.validade ? p.validade>=hoje : (Date.now()-new Date(p.publicado))<3*864e5;
   // uma linha por programa+bônus (várias fontes falam da mesma promoção)
   const uniq=(L)=>{const m=new Map(); for(const p of L){const k=p.prog+p.bonus+(p.validade||""); if(!m.has(k)) m.set(k,p);} return [...m.values()];};
-  const ativas=uniq(P.promos.filter(ativa)).sort((a,b)=>b.bonus-a.bonus);
+  // ativas: uma por programa (a de maior bônus), já que várias matérias falam da mesma campanha
+  const porProg={}; for(const p of P.promos.filter(ativa)) if(!porProg[p.prog]||p.bonus>porProg[p.prog].bonus) porProg[p.prog]=p;
+  const ativas=Object.values(porProg).sort((a,b)=>b.bonus-a.bonus);
   const recentes=uniq(P.promos.filter(p=>!ativa(p)&&(Date.now()-new Date(p.publicado))<45*864e5)).slice(0,8);
-  const melhor={}; for(const p of P.promos) if(!melhor[p.prog]||p.bonus>melhor[p.prog]) melhor[p.prog]=p.bonus;
+  const melhor={}, qtd={}; for(const p of P.promos){ qtd[p.prog]=(qtd[p.prog]||0)+1; if(!melhor[p.prog]||p.bonus>melhor[p.prog]) melhor[p.prog]=p.bonus; }
   const linha=(p,on)=>`<tr><td><b>${LIV[p.prog]||p.prog}</b><div class="fa">${esc(p.fonte)}</div></td>
     <td class="${p.bonus>=80?"hot":""}">até ${p.bonus}%</td>
     <td>${p.validade?(on?"até ":"")+dBR(p.validade):`<span class="fa">${on?"confira a validade":"—"}</span>`}</td>
-    <td>${p.bonus>=melhor[p.prog]?'<span class="tag g">melhor do ano</span>':`<span class="fa">recorde: ${melhor[p.prog]}%</span>`}</td>
+    <td>${qtd[p.prog]<5?"":p.bonus>=melhor[p.prog]?'<span class="tag g">maior já visto</span>':`<span class="fa">maior já visto: ${melhor[p.prog]}%</span>`}</td>
     <td><a href="${esc(p.link)}" target="_blank" rel="noopener">detalhes ↗</a></td></tr>`;
   const cab=`<tr><th>Livelo →</th><th>Bônus</th><th>Validade</th><th></th><th></th></tr>`;
   box.innerHTML=(ativas.length?`<table class="mini">${cab}${ativas.map(p=>linha(p,1)).join("")}</table>`:
       `<div class="empty" style="padding:14px">Nenhuma transferência bonificada Livelo ativa agora.</div>`)+
     (recentes.length?`<details class="more"><summary>últimas que já acabaram</summary><table class="mini" style="margin-top:8px">${cab}${recentes.map(p=>linha(p,0)).join("")}</table></details>`:"")+
-    `<div class="chips">${Object.entries(melhor).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip">${LIV[k]||k}: recorde <b>${v}%</b></span>`).join("")}</div>
+    `<div class="chips">${Object.entries(melhor).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<span class="chip">${LIV[k]||k}: maior já visto <b>${v}%</b></span>`).join("")}</div>
      <p class="fa" style="margin-bottom:0">Regra de bolso: bônus de 80%+ costuma valer a pena. Quase sempre é preciso <b>se cadastrar na página da promoção antes</b> de transferir, e o bônus maior fica para quem assina os clubes. Atualizado ${ago(P.atualizado)}.</p>`;
 }
 
