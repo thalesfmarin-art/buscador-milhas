@@ -96,6 +96,12 @@ pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:
 .chip{font-size:12px;background:var(--bg);border:1px solid var(--line);border-radius:99px;padding:3px 9px;color:var(--muted)}
 .chip b{color:var(--ink)}
 .hot{color:var(--good);font-weight:700}
+.tree details{border-left:2px solid var(--line);margin:6px 0 6px 6px;padding-left:12px}
+.tree summary{cursor:pointer;font-weight:600;padding:4px 0}
+.tree .reg{font-size:12px;color:var(--muted);margin:6px 0 2px}
+.tree .chips{margin-top:2px}
+.chip.on{background:var(--good-soft);color:var(--good);border-color:var(--good)}
+.found{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px}
 select.ord{width:auto;padding:6px 8px;font-size:13px}
 footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
 </style>
@@ -209,6 +215,15 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
         <li><b>Saindo do interior:</b> o trecho até Guarulhos é um bilhete separado; deixe folga grande ou chegue no dia anterior.</li>
       </ol>
       <p class="mu">Dica: só compre milhas <b>depois</b> de achar a passagem, e de preferência com a tarifa ainda aparecendo. A disponibilidade pode sumir.</p>
+    </section>
+
+    <section class="card">
+      <h2>🌳 Quem emite quem <small>com milhas de um programa, em quais companhias dá para voar</small></h2>
+      <div class="grid" style="grid-template-columns:1fr"><div><label>Quero voar de… (ex.: Turkish, Emirates, TAP)</label>
+        <input id="pq" placeholder="digite o nome da companhia aérea" autocomplete="off"></div></div>
+      <div id="pres" style="margin-top:10px"></div>
+      <div id="arvore" style="margin-top:6px"></div>
+      <p class="fa">Parceria não garante assento: a companhia libera poucos lugares para milhas, e por isso vale buscar em mais de um programa. Listas de 2026; as parcerias mudam, então confira no site do programa antes de comprar milhas.</p>
     </section>
 
     <section class="card">
@@ -574,6 +589,49 @@ function renderLivelo(P){
      <p class="fa" style="margin-bottom:0">Regra de bolso: bônus de 80%+ costuma valer a pena. Quase sempre é preciso <b>se cadastrar na página da promoção antes</b> de transferir, e o bônus maior fica para quem assina os clubes. Atualizado ${ago(P.atualizado)}.</p>`;
 }
 
+/* ===================== Árvore de parcerias ===================== */
+const ALI = {
+  "Star Alliance":["Aegean","Air Canada","Air China","Air India","Air New Zealand","ANA","Asiana","Austrian","Avianca","Brussels Airlines","Copa Airlines","Croatia Airlines","EgyptAir","Ethiopian","EVA Air","LOT","Lufthansa","Shenzhen Airlines","Singapore Airlines","South African Airways","SWISS","TAP Air Portugal","Thai Airways","Turkish Airlines","United Airlines"],
+  "oneworld":["Alaska Airlines","American Airlines","British Airways","Cathay Pacific","Fiji Airways","Finnair","Iberia","Japan Airlines","Malaysia Airlines","Qantas","Qatar Airways","Royal Air Maroc","Royal Jordanian","SriLankan"],
+  "SkyTeam":["Aerolíneas Argentinas","Aeroméxico","Air Europa","Air France","China Airlines","China Eastern","Delta","Garuda Indonesia","Kenya Airways","KLM","Korean Air","Middle East Airlines","Saudia","SAS","TAROM","Vietnam Airlines","Virgin Atlantic","XiamenAir"],
+};
+// programas brasileiros: parcerias próprias (bilaterais)
+const ARV = {
+  "Smiles (GOL)": {
+    "África":["EgyptAir","Ethiopian","FlySafair","Kenya Airways","Royal Air Maroc","South African Airways","TAAG Angola"],
+    "Américas":["Aerolíneas Argentinas","Aeroméxico","Air Canada","Alaska Airlines","American Airlines","Avianca","Bahamasair","BoA","Caribbean Airlines","Copa Airlines","Hawaiian Airlines","SKY Airline","WestJet"],
+    "Europa":["Aegean","Aer Lingus","airBaltic","Air Europa","Air France","British Airways","Brussels Airlines","Croatia Airlines","Hahn Air","Iberia","ITA Airways","KLM","SKY express","TAP Air Portugal","Volotea","Vueling"],
+    "Ásia e Oceania":["ANA","Air India","Bangkok Airways","China Eastern","Garuda Indonesia","Hong Kong Airlines","Juneyao Air","Korean Air","Malaysia Airlines","Scoot","Starlux","Thai Airways","Jetstar","Virgin Australia"],
+    "Oriente Médio":["Emirates","Etihad Airways","flydubai","Saudia","Turkish Airlines"],
+  },
+  "Azul Fidelidade": { "Parceiras (Azul Pelo Mundo)":["Air Canada","Copa Airlines","Emirates","Etihad Airways","TAP Air Portugal","Turkish Airlines","United Airlines"] },
+  "LATAM Pass": { "Parceiras (tabela fixa)":["Aeroméxico","Alaska Airlines","Austrian","British Airways","Cathay Pacific","Delta","Finnair","Iberia","Japan Airlines","Lufthansa","Qantas","Qatar Airways","SWISS"] },
+};
+// programas estrangeiros (no buscador) emitem a aliança inteira
+const ALI_PROG = {"Star Alliance":["Aeroplan","United MileagePlus","LifeMiles","Turkish Miles&Smiles"],"oneworld":["American AAdvantage","Alaska Atmos","Qatar Privilege Club"],"SkyTeam":["Flying Blue","Delta SkyMiles"]};
+const norm = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase();
+function renderArvore(q){
+  const n=norm(q||"").trim();
+  const hit = c => n.length>=3 && norm(c).includes(n);
+  const chips = L => `<div class="chips">${L.map(c=>`<span class="chip ${hit(c)?"on":""}">${esc(c)}</span>`).join("")}</div>`;
+  let h = Object.entries(ARV).map(([prog,regs])=>{
+    const tot=Object.values(regs).flat().length, tem=Object.values(regs).flat().some(hit);
+    return `<details ${tem?"open":""}><summary>${prog} <span class="fa">· ${tot} companhias</span></summary>${Object.entries(regs).map(([r,L])=>`<div class="reg">${r}</div>${chips(L)}`).join("")}</details>`;
+  }).join("");
+  h += `<details><summary>Programas estrangeiros <span class="fa">· emitem a aliança inteira</span></summary>${Object.entries(ALI).map(([a,L])=>
+      `<details ${L.some(hit)?"open":""}><summary>${a} <span class="fa">· via ${ALI_PROG[a].join(", ")}</span></summary>${chips(L)}</details>`).join("")}</details>`;
+  $("arvore").innerHTML=`<div class="tree">${h}</div>`;
+  // resposta direta para a busca
+  if(n.length<3){ $("pres").innerHTML=""; return; }
+  const nomes=new Set([...Object.values(ARV).flatMap(r=>Object.values(r).flat()),...Object.values(ALI).flat()].filter(hit));
+  if(!nomes.size){ $("pres").innerHTML=`<div class="found">Não achei “${esc(q)}” nas listas. Pode ser uma companhia sem parceria com esses programas.</div>`; return; }
+  $("pres").innerHTML=[...nomes].map(c=>{
+    const br=Object.entries(ARV).filter(([p,r])=>Object.values(r).flat().includes(c)).map(([p])=>`<b>${p}</b>`);
+    const al=Object.entries(ALI).filter(([a,L])=>L.includes(c)).map(([a])=>`${a}: ${ALI_PROG[a].join(", ")}`);
+    return `<div class="found" style="margin-bottom:6px">✈️ <b>${esc(c)}</b> pode ser emitida com: ${br.length?br.join(", "):"<span class='mu'>nenhum programa brasileiro</span>"}${al.length?`<div class="fa" style="margin-top:3px">Também por programas estrangeiros (${al.join(" · ")})</div>`:""}</div>`;
+  }).join("");
+}
+
 /* ===================== Aprenda ===================== */
 function renderLearn(){
   $("howto").innerHTML = ["smiles","azul"].map(p=>`<p><b>${PROG[p].n}</b> — <a href="${PROG[p].u}" target="_blank" rel="noopener">abrir site</a></p><ol>${PROG[p].how.map(s=>`<li>${s}</li>`).join("")}</ol>`).join("")+
@@ -583,6 +641,7 @@ function renderLearn(){
   $("promoTable").innerHTML=`<table class="mini"><tr><th>Programa</th><th>Quando costuma ter promoção</th></tr>`+
     Object.keys(PROG).filter(p=>!/esporádicas$/.test(PROG[p].promo)).map(p=>`<tr><td>${PROG[p].n}</td><td>${PROG[p].promo}</td></tr>`).join("")+`</table>`;
   calc();
+  renderArvore(""); $("pq").addEventListener("input",e=>renderArvore(e.target.value));
 }
 function calc(){
   const mi=+$("cMi").value||0, tx=+$("cTx").value||0, ml=+$("cMil").value||0, din=+$("cDin").value||0;
