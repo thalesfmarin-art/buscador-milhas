@@ -156,7 +156,9 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
       <div class="grid g2" style="margin-top:12px">
         <div><label>Classes</label><div class="chipsel" id="fCabs">
           <button data-v="Y" class="on">Econômica</button><button data-v="W" class="on">Premium</button>
-          <button data-v="J" class="on">Executiva</button><button data-v="F" class="on">Primeira</button></div></div>
+          <button data-v="J" class="on">Executiva</button><button data-v="F" class="on">Primeira</button></div>
+          <label style="margin-top:10px">Voo</label><div class="chipsel one" id="fParadas">
+          <button data-v="" class="on">Todos</button><button data-v="dir">Só direto</button><button data-v="con">Com conexão</button></div></div>
         <div><label>Programa (com qual milha emitir)</label><div class="chipsel one" id="fLinha">
           <button data-v="" class="on">Todos</button><button data-v="smiles">Smiles</button><button data-v="azul">Azul Pelo Mundo</button>
           <button data-v="latam" class="off" title="O LATAM Pass não está na base do Seats.aero">LATAM Pass</button><button data-v="ext">Estrangeiros</button></div>
@@ -170,7 +172,6 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
           <div><label>Máximo de milhas</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
           <div><label>Programa específico</label><select id="fProg"><option value="">Qualquer</option></select></div>
           <div><label>Companhia aérea</label><select id="fCia"><option value="">Todas</option></select></div>
-          <div class="chk"><label class="chk" style="padding:0;margin:0;color:inherit"><input type="checkbox" id="fDireto">Só voo direto</label></div>
         </div>
       </details>
     </section>
@@ -441,11 +442,13 @@ function bind(){
     ["buscar","aprenda","alertas"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.tab));});
   $("fOrig").addEventListener("input",()=>{ const o=$("fOrig").value; $("impSub").textContent=`só ida, saindo de ${o==="*"?"qualquer aeroporto":apTxt(o)}, bem abaixo do preço normal`; renderImp(); });
   document.querySelectorAll("#fCabs button").forEach(b=>b.onclick=()=>{ b.classList.toggle("on"); if(!document.querySelector("#fCabs .on")) b.classList.add("on"); shown=100; render(); });
+  document.querySelectorAll("#fParadas button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("#fParadas button").forEach(x=>x.classList.toggle("on",x===b)); shown=100; render(); });
   document.querySelectorAll("#fLinha button").forEach(b=>b.onclick=()=>{
     $("latamMsg").classList.toggle("hide", b.dataset.v!=="latam"); if(b.dataset.v==="latam") return;
     document.querySelectorAll("#fLinha button").forEach(x=>x.classList.toggle("on",x===b)); shown=100; render(); });
   $("fOrd").addEventListener("input",()=>{ const [k,d]=$("fOrd").value.split("_"); SORT={k,dir:d==="desc"?-1:1}; lastList=search(); OPEN=null; draw(); });
-  ["fOrig","fDest","fIdaDe","fIdaAte","fMax","fProg","fCia","fDireto"]
+  ["fOrig","fDest","fIdaDe","fIdaAte","fMax","fProg","fCia"]
     .forEach(id=>$(id).addEventListener("input",()=>{shown=100;render();if(!$("calBox").classList.contains("hide"))renderCal();}));
   $("btnMore").onclick=()=>{shown+=100;draw();};
   $("btnCal").onclick=()=>{ $("calBox").classList.toggle("hide"); renderCal(); };
@@ -461,7 +464,7 @@ const kSel = id => [...document.querySelectorAll(`#${id} button.on`)].map(b=>b.d
 function F(){ const cabs=kSel("fCabs"); return {orig:$("fOrig").value, dest:$("fDest").value, tipo:"i",
   cabs:cabs.length?cabs:CABS, cab:(cabs[0]||"Y"), linha:(kSel("fLinha")[0]||""),
   idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, 
-  max:+$("fMax").value||Infinity, prog:$("fProg").value, cia:$("fCia").value, dir:$("fDireto").checked}; }
+  max:+$("fMax").value||Infinity, prog:$("fProg").value, cia:$("fCia").value, paradas:(kSel("fParadas")[0]||"")}; }
 const origOk = (code,f) => f.orig==="*" || code===f.orig;
 const BR_PROGS = new Set(["smiles","azul"]);
 function progOk(p,f){
@@ -474,7 +477,6 @@ function legOkCab(r,f,cab){
   const v=r.c[cab]; if(!v) return false;
   if(!progOk(r.p,f)) return false;
   if(f.cia && !(v[4]||"").split(",").map(s=>s.trim()).includes(f.cia)) return false;
-  if(f.dir && !v[3]) return false;
   return true;
 }
 const legOk = (r,f) => legOkCab(r,f,f.cab);
@@ -522,6 +524,8 @@ function search(){
       const ni = a._via ? nacParaIda({...a,o:a._via},cab) : null;
       if(a._via && !ni) continue;                      // sem voo Rio Preto -> SP que encaixe
       const miI = va[0] + (ni?ni.c.Y[0]:0), txI = somaTx(va[1], ni?ni.c.Y[1]:0);
+      const direto = !!va[3] && !ni;
+      if((f.paradas==="dir" && !direto) || (f.paradas==="con" && direto)) continue;
       if(f.tipo==="i"){ if(miI<=f.max){ cells[cab]={mi:miI,tx:txI,dir:va[3]&&!ni,stops:ni?null:(fx(a,cab)?.[4]),ni}; any=true; } continue; }
       const chegada = a._via || a.o;
       let best=null,bm=Infinity,bnv=null;
