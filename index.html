@@ -84,7 +84,7 @@ table.mini tr:last-child td{border-bottom:0}
 pre{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px;overflow:auto;font-size:12.5px}
 .hide{display:none!important}
 .search{padding:18px}
-.g3{grid-template-columns:1fr 1.3fr 1fr}
+.g3{grid-template-columns:1fr 1.3fr}
 @media (max-width:640px){.g3{grid-template-columns:1fr}}
 .seg{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
 .seg button{flex:1;border:0;background:var(--card);color:var(--muted);padding:8px 6px;font:inherit;font-size:14px;cursor:pointer}
@@ -152,8 +152,6 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
       <div class="grid g3">
         <div><label>Origem</label><select id="fOrig"></select></div>
         <div><label>Destino <span class="fa">(opcional)</span></label><select id="fDest"></select></div>
-        <div><label>Tipo</label><div class="seg" id="fTipo">
-          <button data-v="iv" class="on">Ida e volta</button><button data-v="i">Só ida</button></div></div>
       </div>
       <div class="grid g2" style="margin-top:12px">
         <div><label>Classes</label><div class="chipsel" id="fCabs">
@@ -169,8 +167,6 @@ footer{color:var(--faint);font-size:12px;text-align:center;padding:10px 0 30px}
         <div class="grid">
           <div><label>Ida a partir de</label><input type="date" id="fIdaDe"></div>
           <div><label>Ida até</label><input type="date" id="fIdaAte"></div>
-          <div class="sohIV"><label>Duração (dias)</label>
-            <div style="display:flex;gap:6px"><input type="number" id="fDurMin" min="1" value="5" title="mínimo"><input type="number" id="fDurMax" min="1" value="20" title="máximo"></div></div>
           <div><label>Máximo de milhas</label><input type="number" id="fMax" step="5000" placeholder="sem limite"></div>
           <div><label>Programa específico</label><select id="fProg"><option value="">Qualquer</option></select></div>
           <div><label>Companhia aérea</label><select id="fCia"><option value="">Todas</option></select></div>
@@ -443,15 +439,13 @@ function bind(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("on",x===b));
     ["buscar","aprenda","alertas"].forEach(t=>$("tab-"+t).classList.toggle("hide",t!==b.dataset.tab));});
-  document.querySelectorAll("#fTipo button").forEach(bt=>bt.onclick=()=>{document.querySelectorAll("#fTipo button").forEach(x=>x.classList.toggle("on",x===bt));
-    document.querySelectorAll(".sohIV").forEach(e=>e.classList.toggle("hide",bt.dataset.v!=="iv")); shown=40; render(); });
   $("fOrig").addEventListener("input",()=>{ const o=$("fOrig").value; $("impSub").textContent=`só ida, saindo de ${o==="*"?"qualquer aeroporto":apTxt(o)}, bem abaixo do preço normal`; renderImp(); });
   document.querySelectorAll("#fCabs button").forEach(b=>b.onclick=()=>{ b.classList.toggle("on"); if(!document.querySelector("#fCabs .on")) b.classList.add("on"); shown=100; render(); });
   document.querySelectorAll("#fLinha button").forEach(b=>b.onclick=()=>{
     $("latamMsg").classList.toggle("hide", b.dataset.v!=="latam"); if(b.dataset.v==="latam") return;
     document.querySelectorAll("#fLinha button").forEach(x=>x.classList.toggle("on",x===b)); shown=100; render(); });
   $("fOrd").addEventListener("input",()=>{ const [k,d]=$("fOrd").value.split("_"); SORT={k,dir:d==="desc"?-1:1}; lastList=search(); OPEN=null; draw(); });
-  ["fOrig","fDest","fIdaDe","fIdaAte","fDurMin","fDurMax","fMax","fProg","fCia","fDireto"]
+  ["fOrig","fDest","fIdaDe","fIdaAte","fMax","fProg","fCia","fDireto"]
     .forEach(id=>$(id).addEventListener("input",()=>{shown=100;render();if(!$("calBox").classList.contains("hide"))renderCal();}));
   $("btnMore").onclick=()=>{shown+=100;draw();};
   $("btnCal").onclick=()=>{ $("calBox").classList.toggle("hide"); renderCal(); };
@@ -464,9 +458,9 @@ function bind(){
 const CABS=["Y","W","J","F"];
 let SORT={k:"mi",dir:1}, OPEN=null;
 const kSel = id => [...document.querySelectorAll(`#${id} button.on`)].map(b=>b.dataset.v);
-function F(){ const cabs=kSel("fCabs"); return {orig:$("fOrig").value, dest:$("fDest").value, tipo:document.querySelector("#fTipo .on").dataset.v,
+function F(){ const cabs=kSel("fCabs"); return {orig:$("fOrig").value, dest:$("fDest").value, tipo:"i",
   cabs:cabs.length?cabs:CABS, cab:(cabs[0]||"Y"), linha:(kSel("fLinha")[0]||""),
-  idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, dmin:+$("fDurMin").value||1, dmax:+$("fDurMax").value||60,
+  idaDe:$("fIdaDe").value, idaAte:$("fIdaAte").value, 
   max:+$("fMax").value||Infinity, prog:$("fProg").value, cia:$("fCia").value, dir:$("fDireto").checked}; }
 const origOk = (code,f) => f.orig==="*" || code===f.orig;
 const BR_PROGS = new Set(["smiles","azul"]);
